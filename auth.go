@@ -24,7 +24,7 @@ func createJWT(user *User) (string, error) {
 
 // permissionDeniedError
 func permissionDeniedError(w http.ResponseWriter) {
-	err := WriteJSON(w, http.StatusUnauthorized, ApiError{Error: "permission denied"})
+	err := WriteJSON(w, http.StatusUnauthorized, apiError{Error: "permission denied"})
 	if err != nil {
 		log.Fatal(err)
 		return
@@ -52,7 +52,7 @@ func withJWTAuth(fn http.HandlerFunc, s Storage) http.HandlerFunc {
 		}
 
 		if err != nil {
-			err := WriteJSON(w, http.StatusUnauthorized, ApiError{Error: "invalid token"})
+			err := WriteJSON(w, http.StatusUnauthorized, apiError{Error: "invalid token"})
 			if err != nil {
 				log.Fatal(err)
 				return
