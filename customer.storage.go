@@ -28,7 +28,12 @@ func (s *PostgresStore) CreateCustomersTable() error {
 
 	// Check if the trigger already exists
 	var triggerExists bool
-	err = s.db.QueryRow("SELECT EXISTS(SELECT 1 FROM pg_trigger WHERE tgname = 'customers_updated_at_trigger' AND tgrelid = 'customers'::regclass)").Scan(&triggerExists)
+	err = s.db.QueryRow(`
+		SELECT EXISTS(
+			SELECT 1 FROM pg_trigger 
+         	WHERE tgname = 'customers_updated_at_trigger' 
+           	AND tgrelid = 'customers'::regclass)
+           `).Scan(&triggerExists)
 	if err != nil {
 		return err
 	}
