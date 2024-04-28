@@ -29,6 +29,7 @@ func (s *APIServer) Run() {
 	router.HandleFunc("/signup", makeHTTPHandlerFunc(s.HandleSignUp))
 	router.HandleFunc("/users", withJWTAuth(makeHTTPHandlerFunc(s.handleUsers), s.store))
 	router.HandleFunc("/users/{id}", withJWTAuth(makeHTTPHandlerFunc(s.handleUsersAndID), s.store))
+	router.HandleFunc("/customers", withJWTAuth(makeHTTPHandlerFunc(s.handleCustomers), s.store))
 
 	log.Println("JSON API server running on port: ", s.listenAddr)
 
@@ -74,6 +75,15 @@ func (s *APIServer) handleUsersAndID(w http.ResponseWriter, r *http.Request) err
 	switch r.Method {
 	case http.MethodGet:
 		return s.handleGetUserByID(w, r)
+	default:
+		return fmt.Errorf("unsupported method: %s", r.Method)
+	}
+}
+
+func (s *APIServer) handleCustomers(w http.ResponseWriter, r *http.Request) error {
+	switch r.Method {
+	case http.MethodPost:
+		return s.handleCreateCustomer(w, r)
 	default:
 		return fmt.Errorf("unsupported method: %s", r.Method)
 	}

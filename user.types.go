@@ -15,13 +15,6 @@ type LoginResponse struct {
 	Token string `json:"token"`
 }
 
-type CreateUserRequest struct {
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Email     string `json:"email"`
-	Password  string `json:"password"`
-}
-
 type User struct {
 	ID                string    `json:"id"`
 	FirstName         string    `json:"first_name"`
@@ -29,6 +22,13 @@ type User struct {
 	Email             string    `json:"email"`
 	EncryptedPassword string    `json:"-"`
 	CreatedAt         time.Time `json:"created_at"`
+}
+
+type CreateUserRequest struct {
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Email     string `json:"email"`
+	Password  string `json:"password"`
 }
 
 func (a *User) ValidatePassword(pw string) bool {
@@ -40,7 +40,12 @@ func (a *User) ValidatePassword(pw string) bool {
 	return true
 }
 
-func NewUser(firstName string, lastName string, email string, password string) (*User, error) {
+func NewUser(
+	firstName string,
+	lastName string,
+	email string,
+	password string,
+) (*User, error) {
 	encryptedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err
