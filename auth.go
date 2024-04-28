@@ -35,9 +35,8 @@ func permissionDeniedError(w http.ResponseWriter) {
 // It validates the included JWT and authorizes the request.
 // If the JWT is invalid or the request is unauthorized, it responds with a permission denied error.
 // Returns an HTTP handler that wraps the original handler.
-func withJWTAuth(fn http.HandlerFunc, s Storage) http.HandlerFunc {
+func withJWTAuth(fn http.HandlerFunc, _ Storage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("calling JWT auth middleware")
 
 		tokenString := r.Header.Get("Authorization")
 		token, err := validateJWT(tokenString)

@@ -39,25 +39,72 @@ func (server *APIServer) handleCreateCustomer(w http.ResponseWriter, r *http.Req
 }
 
 func (server *APIServer) handleGetCustomers(w http.ResponseWriter, _ *http.Request) error {
-	users, err := server.store.GetCustomers()
+	customers, err := server.store.GetCustomers()
 	if err != nil {
 		return err
 	}
-	return WriteJSON(w, http.StatusOK, users)
+	return WriteJSON(w, http.StatusOK, customers)
 }
 
-//func (server *APIServer) handleGetCustomerByID(w http.ResponseWriter, r *http.Request) error {
-//	id, err := getID(r)
-//	if err != nil {
-//		return err
-//	}
-//
-//	customer, err := server.store.GetCustomerByID(id)
-//	if err != nil {
-//		return err
-//	}
-//
-//	return WriteJSON(w, http.StatusOK, customer)
-//}
-//
-//
+func (server *APIServer) handleGetCustomerByID(w http.ResponseWriter, r *http.Request) error {
+	id, err := getID(r)
+	if err != nil {
+		return err
+	}
+
+	customer, err := server.store.GetCustomerByID(id)
+	if err != nil {
+		return err
+	}
+
+	return WriteJSON(w, http.StatusOK, customer)
+}
+
+func (server *APIServer) handleUpdateCustomer(w http.ResponseWriter, r *http.Request) error {
+	id, err := getID(r)
+	if err != nil {
+		return err
+	}
+
+	_, err = server.store.GetCustomerByID(id)
+	if err != nil {
+		return err
+	}
+
+	var customer Customer
+	if err := json.NewDecoder(r.Body).Decode(&customer); err != nil {
+		return err
+	}
+
+	customer.ID = id
+
+	if err := server.store.UpdateCustomer(&customer); err != nil {
+		return err
+	}
+
+	// Retrieve the updated information from the database to get the most up-to-date data
+	updatedCustomer, err := server.store.GetCustomerByID(id)
+	if err != nil {
+		return err
+	}
+
+	return WriteJSON(w, http.StatusOK, updatedCustomer)
+}
+
+func (server *APIServer) handleDeleteCustomer(w http.ResponseWriter, r *http.Request) error {
+	id, err := getID(r)
+	if err != nil {
+		return err
+	}
+
+	_, err = server.store.GetCustomerByID(id)
+	if err != nil {
+		return err
+	}
+
+	if err := server.store.DeleteCustomer(id); err != nil {
+		return err
+	}
+
+	return WriteJSON(w, http.StatusOK, map[string]string{"deleted": id})
+}

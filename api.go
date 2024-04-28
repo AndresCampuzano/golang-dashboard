@@ -30,7 +30,7 @@ func (server *APIServer) Run() {
 	router.HandleFunc("/users", withJWTAuth(makeHTTPHandlerFunc(server.handleUsers), server.store))
 	router.HandleFunc("/users/{id}", withJWTAuth(makeHTTPHandlerFunc(server.handleUsersAndID), server.store))
 	router.HandleFunc("/customers", withJWTAuth(makeHTTPHandlerFunc(server.handleCustomers), server.store))
-	//router.HandleFunc("/customers/{id}", withJWTAuth(makeHTTPHandlerFunc(server.handleCustomersAndID), server.store))
+	router.HandleFunc("/customers/{id}", withJWTAuth(makeHTTPHandlerFunc(server.handleCustomersAndID), server.store))
 
 	log.Println("JSON API server running on port: ", server.listenAddr)
 
@@ -81,7 +81,7 @@ func (server *APIServer) handleUsersAndID(w http.ResponseWriter, r *http.Request
 	}
 }
 
-// handleCustomers handles customer creation.
+// handleCustomers handles customer logic.
 func (server *APIServer) handleCustomers(w http.ResponseWriter, r *http.Request) error {
 	switch r.Method {
 	case http.MethodGet:
@@ -93,13 +93,16 @@ func (server *APIServer) handleCustomers(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-//// handleCustomersAndID handles customer creation.
-//func (s *APIServer) handleCustomersAndID(w http.ResponseWriter, r *http.Request) error {
-//	switch r.Method {
-//	case http.MethodPost:
-//		return s.handleCreateCustomer(w, r)
-//	default:
-//		return fmt.Errorf("unsupported method: %s", r.Method)
-//	}
-//}
-//
+// handleCustomersAndID handles customer logic.
+func (server *APIServer) handleCustomersAndID(w http.ResponseWriter, r *http.Request) error {
+	switch r.Method {
+	case http.MethodGet:
+		return server.handleGetCustomerByID(w, r)
+	case http.MethodPut:
+		return server.handleUpdateCustomer(w, r)
+	case http.MethodDelete:
+		return server.handleDeleteCustomer(w, r)
+	default:
+		return fmt.Errorf("unsupported method: %s", r.Method)
+	}
+}

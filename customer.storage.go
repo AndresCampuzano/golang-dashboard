@@ -154,3 +154,36 @@ func (s *PostgresStore) GetCustomers() ([]*Customer, error) {
 
 	return customers, nil
 }
+
+func (s *PostgresStore) UpdateCustomer(customer *Customer) error {
+	query := `
+		UPDATE customers
+		SET name = $1, instagram_account = $2, phone = $3, address = $4, city = $5, department = $6, comments = $7
+		WHERE id = $8
+	`
+
+	_, err := s.db.Exec(
+		query,
+		customer.Name,
+		customer.InstagramAccount,
+		customer.Phone,
+		customer.Address,
+		customer.City,
+		customer.Department,
+		customer.Comments,
+		customer.ID,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *PostgresStore) DeleteCustomer(id string) error {
+	_, err := s.db.Exec("DELETE FROM customers WHERE id = $1", id)
+	if err != nil {
+		return err
+	}
+	return nil
+}

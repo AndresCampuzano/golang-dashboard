@@ -13,6 +13,8 @@ type Storage interface {
 	CreateCustomer(customer *Customer) error
 	GetCustomerByID(id string) (*Customer, error)
 	GetCustomers() ([]*Customer, error)
+	UpdateCustomer(customer *Customer) error
+	DeleteCustomer(id string) error
 }
 
 type PostgresStore struct {
