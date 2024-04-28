@@ -6,13 +6,13 @@ import (
 	"net/http"
 )
 
-func (s *APIServer) handleLoginUser(w http.ResponseWriter, r *http.Request) error {
+func (server *APIServer) handleLoginUser(w http.ResponseWriter, r *http.Request) error {
 	var req LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return err
 	}
 
-	acc, err := s.store.GetUserByEmail(req.Email)
+	acc, err := server.store.GetUserByEmail(req.Email)
 	if err != nil {
 		return err
 	}
@@ -34,7 +34,7 @@ func (s *APIServer) handleLoginUser(w http.ResponseWriter, r *http.Request) erro
 	return WriteJSON(w, http.StatusOK, resp)
 }
 
-func (s *APIServer) handleCreateUser(w http.ResponseWriter, r *http.Request) error {
+func (server *APIServer) handleCreateUser(w http.ResponseWriter, r *http.Request) error {
 	req := new(CreateUserRequest)
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 		return err
@@ -45,7 +45,7 @@ func (s *APIServer) handleCreateUser(w http.ResponseWriter, r *http.Request) err
 		return err
 	}
 
-	if err := s.store.CreateUser(user); err != nil {
+	if err := server.store.CreateUser(user); err != nil {
 		return err
 	}
 
@@ -56,7 +56,7 @@ func (s *APIServer) handleCreateUser(w http.ResponseWriter, r *http.Request) err
 	fmt.Println("JWT token: ", tokenString)
 
 	// Recovering user from DB
-	createdUser, err := s.store.GetUserByID(user.ID)
+	createdUser, err := server.store.GetUserByID(user.ID)
 	if err != nil {
 		return err
 	}
@@ -65,21 +65,21 @@ func (s *APIServer) handleCreateUser(w http.ResponseWriter, r *http.Request) err
 	return WriteJSON(w, http.StatusOK, createdUser)
 }
 
-func (s *APIServer) handleGetUsers(w http.ResponseWriter, _ *http.Request) error {
-	users, err := s.store.GetUsers()
+func (server *APIServer) handleGetUsers(w http.ResponseWriter, _ *http.Request) error {
+	users, err := server.store.GetUsers()
 	if err != nil {
 		return err
 	}
 	return WriteJSON(w, http.StatusOK, users)
 }
 
-func (s *APIServer) handleGetUserByID(w http.ResponseWriter, r *http.Request) error {
+func (server *APIServer) handleGetUserByID(w http.ResponseWriter, r *http.Request) error {
 	id, err := getID(r)
 	if err != nil {
 		return err
 	}
 
-	account, err := s.store.GetUserByID(id)
+	account, err := server.store.GetUserByID(id)
 	if err != nil {
 		return err
 	}

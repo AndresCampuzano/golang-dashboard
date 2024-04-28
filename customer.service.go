@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func (s *APIServer) handleCreateCustomer(w http.ResponseWriter, r *http.Request) error {
+func (server *APIServer) handleCreateCustomer(w http.ResponseWriter, r *http.Request) error {
 	req := new(CreateCustomerRequest)
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 		return err
@@ -24,12 +24,12 @@ func (s *APIServer) handleCreateCustomer(w http.ResponseWriter, r *http.Request)
 		return err
 	}
 
-	if err := s.store.CreateCustomer(customer); err != nil {
+	if err := server.store.CreateCustomer(customer); err != nil {
 		return err
 	}
 
 	// Recovering customer from DB
-	createdCustomer, err := s.store.GetCustomerByID(customer.ID)
+	createdCustomer, err := server.store.GetCustomerByID(customer.ID)
 	if err != nil {
 		return err
 	}
@@ -37,3 +37,27 @@ func (s *APIServer) handleCreateCustomer(w http.ResponseWriter, r *http.Request)
 	// Return the newly created customer in the response
 	return WriteJSON(w, http.StatusOK, createdCustomer)
 }
+
+func (server *APIServer) handleGetCustomers(w http.ResponseWriter, _ *http.Request) error {
+	users, err := server.store.GetCustomers()
+	if err != nil {
+		return err
+	}
+	return WriteJSON(w, http.StatusOK, users)
+}
+
+//func (server *APIServer) handleGetCustomerByID(w http.ResponseWriter, r *http.Request) error {
+//	id, err := getID(r)
+//	if err != nil {
+//		return err
+//	}
+//
+//	customer, err := server.store.GetCustomerByID(id)
+//	if err != nil {
+//		return err
+//	}
+//
+//	return WriteJSON(w, http.StatusOK, customer)
+//}
+//
+//

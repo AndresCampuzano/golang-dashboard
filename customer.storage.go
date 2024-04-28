@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"log"
 )
 
 func (s *PostgresStore) CreateCustomersTable() error {
@@ -126,4 +127,30 @@ func scanIntoCustomers(rows *sql.Rows) (*Customer, error) {
 	)
 
 	return customer, err
+}
+
+func (s *PostgresStore) GetCustomers() ([]*Customer, error) {
+	rows, err := s.db.Query("SELECT * FROM customers")
+	if err != nil {
+		return nil, err
+	}
+
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(rows)
+
+	var customers []*Customer
+	for rows.Next() {
+		customer, err := scanIntoCustomers(rows)
+		if err != nil {
+			return nil, err
+		}
+
+		customers = append(customers, customer)
+	}
+
+	return customers, nil
 }

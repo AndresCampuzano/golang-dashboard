@@ -22,69 +22,84 @@ func NewAPIServer(listenAddr string, store Storage) *APIServer {
 }
 
 // Run starts the API server and listens for incoming requests.
-func (s *APIServer) Run() {
+func (server *APIServer) Run() {
 	router := mux.NewRouter()
 
-	router.HandleFunc("/login", makeHTTPHandlerFunc(s.handleLogin))
-	router.HandleFunc("/signup", makeHTTPHandlerFunc(s.HandleSignUp))
-	router.HandleFunc("/users", withJWTAuth(makeHTTPHandlerFunc(s.handleUsers), s.store))
-	router.HandleFunc("/users/{id}", withJWTAuth(makeHTTPHandlerFunc(s.handleUsersAndID), s.store))
-	router.HandleFunc("/customers", withJWTAuth(makeHTTPHandlerFunc(s.handleCustomers), s.store))
+	router.HandleFunc("/login", makeHTTPHandlerFunc(server.handleLogin))
+	router.HandleFunc("/signup", makeHTTPHandlerFunc(server.HandleSignUp))
+	router.HandleFunc("/users", withJWTAuth(makeHTTPHandlerFunc(server.handleUsers), server.store))
+	router.HandleFunc("/users/{id}", withJWTAuth(makeHTTPHandlerFunc(server.handleUsersAndID), server.store))
+	router.HandleFunc("/customers", withJWTAuth(makeHTTPHandlerFunc(server.handleCustomers), server.store))
+	//router.HandleFunc("/customers/{id}", withJWTAuth(makeHTTPHandlerFunc(server.handleCustomersAndID), server.store))
 
-	log.Println("JSON API server running on port: ", s.listenAddr)
+	log.Println("JSON API server running on port: ", server.listenAddr)
 
-	err := http.ListenAndServe(s.listenAddr, router)
+	err := http.ListenAndServe(server.listenAddr, router)
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
 }
 
-// handleUser handles user login.
-func (s *APIServer) handleLogin(w http.ResponseWriter, r *http.Request) error {
+// handleLogin handles user login.
+func (server *APIServer) handleLogin(w http.ResponseWriter, r *http.Request) error {
 	switch r.Method {
 	case http.MethodPost:
-		return s.handleLoginUser(w, r)
+		return server.handleLoginUser(w, r)
 	default:
 		return fmt.Errorf("unsupported method: %s", r.Method)
 	}
 }
 
 // HandleSignUp handles user sign up.
-func (s *APIServer) HandleSignUp(w http.ResponseWriter, r *http.Request) error {
+func (server *APIServer) HandleSignUp(w http.ResponseWriter, r *http.Request) error {
 	switch r.Method {
 	case http.MethodPost:
-		return s.handleCreateUser(w, r)
+		return server.handleCreateUser(w, r)
 	default:
 		return fmt.Errorf("unsupported method: %s", r.Method)
 	}
 }
 
 // handleUsers handles user info retrieve.
-func (s *APIServer) handleUsers(w http.ResponseWriter, r *http.Request) error {
+func (server *APIServer) handleUsers(w http.ResponseWriter, r *http.Request) error {
 	switch r.Method {
 	case http.MethodGet:
-		return s.handleGetUsers(w, r)
+		return server.handleGetUsers(w, r)
 	default:
 		return fmt.Errorf("unsupported method: %s", r.Method)
 	}
 }
 
 // handleUsersAndID handles requests to manage a user by ID.
-func (s *APIServer) handleUsersAndID(w http.ResponseWriter, r *http.Request) error {
+func (server *APIServer) handleUsersAndID(w http.ResponseWriter, r *http.Request) error {
 	switch r.Method {
 	case http.MethodGet:
-		return s.handleGetUserByID(w, r)
+		return server.handleGetUserByID(w, r)
 	default:
 		return fmt.Errorf("unsupported method: %s", r.Method)
 	}
 }
 
-func (s *APIServer) handleCustomers(w http.ResponseWriter, r *http.Request) error {
+// handleCustomers handles customer creation.
+func (server *APIServer) handleCustomers(w http.ResponseWriter, r *http.Request) error {
 	switch r.Method {
+	case http.MethodGet:
+		return server.handleGetCustomers(w, r)
 	case http.MethodPost:
-		return s.handleCreateCustomer(w, r)
+		return server.handleCreateCustomer(w, r)
 	default:
 		return fmt.Errorf("unsupported method: %s", r.Method)
 	}
 }
+
+//// handleCustomersAndID handles customer creation.
+//func (s *APIServer) handleCustomersAndID(w http.ResponseWriter, r *http.Request) error {
+//	switch r.Method {
+//	case http.MethodPost:
+//		return s.handleCreateCustomer(w, r)
+//	default:
+//		return fmt.Errorf("unsupported method: %s", r.Method)
+//	}
+//}
+//

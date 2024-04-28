@@ -12,6 +12,7 @@ type Storage interface {
 	GetUserByEmail(email string) (*User, error)
 	CreateCustomer(customer *Customer) error
 	GetCustomerByID(id string) (*Customer, error)
+	GetCustomers() ([]*Customer, error)
 }
 
 type PostgresStore struct {
