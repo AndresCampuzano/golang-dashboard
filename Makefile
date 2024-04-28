@@ -1,8 +1,8 @@
 build:
-	@go build -o bin/golang-gobank
+	@go build -o bin/golang-dashboard
 
 run: build
-	@./bin/golang-gobank
+	@./bin/golang-dashboard
 
 test:
 	@go test -v ./...
