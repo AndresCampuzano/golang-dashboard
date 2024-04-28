@@ -163,7 +163,14 @@ func (s *PostgresStore) GetCustomers() ([]*Customer, error) {
 func (s *PostgresStore) UpdateCustomer(customer *Customer) error {
 	query := `
 		UPDATE customers
-		SET name = $1, instagram_account = $2, phone = $3, address = $4, city = $5, department = $6, comments = $7
+		SET 
+		    name = $1, 
+		    instagram_account = $2, 
+		    phone = $3, 
+		    address = $4, 
+		    city = $5, 
+		    department = $6, 
+		    comments = $7
 		WHERE id = $8
 	`
 
