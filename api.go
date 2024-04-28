@@ -26,9 +26,9 @@ func (s *APIServer) Run() {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/login", makeHTTPHandlerFunc(s.handleLogin))
-	router.HandleFunc("/user", makeHTTPHandlerFunc(s.handleUser))
+	router.HandleFunc("/signup", makeHTTPHandlerFunc(s.HandleSignUp))
 	router.HandleFunc("/users", withJWTAuth(makeHTTPHandlerFunc(s.handleUsers), s.store))
-	router.HandleFunc("/user/{id}", withJWTAuth(makeHTTPHandlerFunc(s.handleUsersAndID), s.store))
+	router.HandleFunc("/users/{id}", withJWTAuth(makeHTTPHandlerFunc(s.handleUsersAndID), s.store))
 
 	log.Println("JSON API server running on port: ", s.listenAddr)
 
@@ -49,8 +49,8 @@ func (s *APIServer) handleLogin(w http.ResponseWriter, r *http.Request) error {
 	}
 }
 
-// handleUser handles user creation.
-func (s *APIServer) handleUser(w http.ResponseWriter, r *http.Request) error {
+// HandleSignUp handles user sign up.
+func (s *APIServer) HandleSignUp(w http.ResponseWriter, r *http.Request) error {
 	switch r.Method {
 	case http.MethodPost:
 		return s.handleCreateUser(w, r)
@@ -74,10 +74,6 @@ func (s *APIServer) handleUsersAndID(w http.ResponseWriter, r *http.Request) err
 	switch r.Method {
 	case http.MethodGet:
 		return s.handleGetUserByID(w, r)
-	//case http.MethodDelete:
-	//	return s.handleDeleteAccount(w, r)
-	//case http.MethodPut:
-	//	return s.handleUpdateAccount(w, r)
 	default:
 		return fmt.Errorf("unsupported method: %s", r.Method)
 	}

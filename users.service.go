@@ -65,7 +65,6 @@ func (s *APIServer) handleCreateUser(w http.ResponseWriter, r *http.Request) err
 	return WriteJSON(w, http.StatusOK, createdUser)
 }
 
-// handleGetUsers handles requests to retrieve all users.
 func (s *APIServer) handleGetUsers(w http.ResponseWriter, _ *http.Request) error {
 	users, err := s.store.GetUsers()
 	if err != nil {
