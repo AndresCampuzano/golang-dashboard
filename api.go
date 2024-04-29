@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
@@ -11,13 +12,15 @@ import (
 type APIServer struct {
 	listenAddr string
 	store      Storage
+	s3Client   *s3.Client
 }
 
 // NewAPIServer creates a new instance of APIServer.
-func NewAPIServer(listenAddr string, store Storage) *APIServer {
+func NewAPIServer(listenAddr string, store Storage, s3 *s3.Client) *APIServer {
 	return &APIServer{
 		listenAddr: listenAddr,
 		store:      store,
+		s3Client:   s3,
 	}
 }
 

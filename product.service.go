@@ -21,6 +21,13 @@ func (server *APIServer) handleCreateProduct(w http.ResponseWriter, r *http.Requ
 		return err
 	}
 
+	imageUrl, err := BucketBasics.UploadFile(BucketBasics{S3Client: server.s3Client}, product.Image)
+	if err != nil {
+		return err
+	}
+
+	product.Image = imageUrl
+
 	if err := server.store.CreateProduct(product); err != nil {
 		return err
 	}
