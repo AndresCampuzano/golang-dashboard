@@ -31,6 +31,7 @@ func (server *APIServer) Run() {
 	router.HandleFunc("/users/{id}", withJWTAuth(makeHTTPHandlerFunc(server.handleUsersAndID), server.store))
 	router.HandleFunc("/customers", withJWTAuth(makeHTTPHandlerFunc(server.handleCustomers), server.store))
 	router.HandleFunc("/customers/{id}", withJWTAuth(makeHTTPHandlerFunc(server.handleCustomersAndID), server.store))
+	router.HandleFunc("/products", withJWTAuth(makeHTTPHandlerFunc(server.handleProducts), server.store))
 
 	log.Println("JSON API server running on port: ", server.listenAddr)
 
@@ -102,6 +103,15 @@ func (server *APIServer) handleCustomersAndID(w http.ResponseWriter, r *http.Req
 		return server.handleUpdateCustomer(w, r)
 	case http.MethodDelete:
 		return server.handleDeleteCustomer(w, r)
+	default:
+		return fmt.Errorf("unsupported method: %s", r.Method)
+	}
+}
+
+func (server *APIServer) handleProducts(w http.ResponseWriter, r *http.Request) error {
+	switch r.Method {
+	case http.MethodPost:
+		return server.handleCreateProduct(w, r)
 	default:
 		return fmt.Errorf("unsupported method: %s", r.Method)
 	}

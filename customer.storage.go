@@ -40,7 +40,7 @@ func (s *PostgresStore) CreateCustomersTable() error {
 
 	// Create the trigger only if it doesn't exist
 	if !triggerExists {
-		// Create the trigger
+		// Create the trigger for updated_at
 		_, err = s.db.Exec(`
             CREATE OR REPLACE FUNCTION update_timestamp()
             RETURNS TRIGGER AS $$
@@ -54,6 +54,39 @@ func (s *PostgresStore) CreateCustomersTable() error {
             BEFORE UPDATE ON customers
             FOR EACH ROW
             EXECUTE FUNCTION update_timestamp();
+        `)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Check if the createdAt trigger already exists
+	err = s.db.QueryRow(`
+        SELECT EXISTS(
+            SELECT 1 FROM pg_trigger 
+            WHERE tgname = 'customers_created_at_trigger' 
+            AND tgrelid = 'customers'::regclass)
+    `).Scan(&triggerExists)
+	if err != nil {
+		return err
+	}
+
+	// Create the trigger only if it doesn't exist
+	if !triggerExists {
+		// Create the trigger for created_at
+		_, err = s.db.Exec(`
+            CREATE OR REPLACE FUNCTION set_created_at()
+            RETURNS TRIGGER AS $$
+            BEGIN
+                NEW.created_at = NOW();
+                RETURN NEW;
+            END;
+            $$ LANGUAGE plpgsql;
+            
+            CREATE TRIGGER customers_created_at_trigger
+            BEFORE INSERT ON customers
+            FOR EACH ROW
+            EXECUTE FUNCTION set_created_at();
         `)
 		if err != nil {
 			return err

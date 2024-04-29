@@ -25,15 +25,15 @@ type CreateCustomerRequest struct {
 	Comments         string `json:"comments"`
 }
 
-type UpdateCustomerRequest struct {
-	Name             string `json:"name"`
-	InstagramAccount string `json:"instagram_account"`
-	Phone            int    `json:"phone"`
-	Address          string `json:"address"`
-	City             string `json:"city"`
-	Department       string `json:"department"`
-	Comments         string `json:"comments"`
-}
+//type UpdateCustomerRequest struct {
+//	Name             string `json:"name"`
+//	InstagramAccount string `json:"instagram_account"`
+//	Phone            int    `json:"phone"`
+//	Address          string `json:"address"`
+//	City             string `json:"city"`
+//	Department       string `json:"department"`
+//	Comments         string `json:"comments"`
+//}
 
 func NewCustomer(
 	name string,
@@ -52,6 +52,5 @@ func NewCustomer(
 		City:             city,
 		Department:       department,
 		Comments:         comments,
-		CreatedAt:        time.Now().UTC(),
 	}, nil
 }

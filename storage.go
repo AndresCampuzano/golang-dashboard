@@ -15,6 +15,8 @@ type Storage interface {
 	GetCustomers() ([]*Customer, error)
 	UpdateCustomer(customer *Customer) error
 	DeleteCustomer(id string) error
+	CreateProduct(product *Product) error
+	GetProductByID(id string) (*Product, error)
 }
 
 type PostgresStore struct {
@@ -28,6 +30,11 @@ func (s *PostgresStore) Init() error {
 	}
 
 	err = s.CreateCustomersTable()
+	if err != nil {
+		return err
+	}
+
+	err = s.CreateProductsTable()
 	if err != nil {
 		return err
 	}
