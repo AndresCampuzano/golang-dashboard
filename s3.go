@@ -89,3 +89,22 @@ func (basics BucketBasics) UploadFile(base64 string) (string, error) {
 
 	return imageUrl, err
 }
+
+// DeleteFile searches a file by id and then deletes it from the bucket
+func (basics BucketBasics) DeleteFile(imageUrl string) error {
+	bucketName := os.Getenv("AWS_S3_BUCKET_NAME")
+
+	parts := strings.Split(imageUrl, "/")
+	imageID := parts[len(parts)-1]
+
+	_, err := basics.S3Client.DeleteObject(context.TODO(), &s3.DeleteObjectInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(imageID),
+	})
+	if err != nil {
+		return fmt.Errorf("Couldn't delete s3 file %v. Here's why: %v\n",
+			bucketName, err)
+	}
+
+	return err
+}

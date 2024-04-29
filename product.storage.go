@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"log"
 )
 
 func (s *PostgresStore) CreateProductsTable() error {
@@ -160,4 +161,67 @@ func scanIntoProducts(rows *sql.Rows) (*Product, error) {
 	product.AvailableColors = ConvertFromDBArray(availableColorsDB)
 
 	return product, nil
+}
+
+func (s *PostgresStore) GetProducts() ([]*Product, error) {
+	rows, err := s.db.Query("SELECT * FROM products")
+	if err != nil {
+		return nil, err
+	}
+
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(rows)
+
+	var products []*Product
+	for rows.Next() {
+		product, err := scanIntoProducts(rows)
+		if err != nil {
+			return nil, err
+		}
+
+		products = append(products, product)
+	}
+
+	return products, nil
+}
+
+func (s *PostgresStore) UpdateProduct(product *Product) error {
+	query := `
+		UPDATE products
+		SET 
+		    name = $1, 
+		    price = $2,
+		    image = $3,
+		    available_colors = $4
+		WHERE id = $5
+	`
+
+	availableColorsDB := ConvertToDBArray(product.AvailableColors)
+	_, err := s.db.Exec(
+		query,
+		product.Name,
+		product.Price,
+		product.Image,
+		&availableColorsDB,
+		product.ID,
+	)
+	if err != nil {
+		return err
+	}
+
+	product.AvailableColors = ConvertFromDBArray(availableColorsDB)
+
+	return nil
+}
+
+func (s *PostgresStore) DeleteProduct(id string) error {
+	_, err := s.db.Exec("DELETE FROM products WHERE id = $1", id)
+	if err != nil {
+		return err
+	}
+	return nil
 }

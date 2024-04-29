@@ -31,10 +31,11 @@ func (server *APIServer) Run() {
 	router.HandleFunc("/login", makeHTTPHandlerFunc(server.handleLogin))
 	router.HandleFunc("/signup", makeHTTPHandlerFunc(server.HandleSignUp))
 	router.HandleFunc("/users", withJWTAuth(makeHTTPHandlerFunc(server.handleUsers), server.store))
-	router.HandleFunc("/users/{id}", withJWTAuth(makeHTTPHandlerFunc(server.handleUsersAndID), server.store))
+	router.HandleFunc("/users/{id}", withJWTAuth(makeHTTPHandlerFunc(server.handleUsersWithID), server.store))
 	router.HandleFunc("/customers", withJWTAuth(makeHTTPHandlerFunc(server.handleCustomers), server.store))
-	router.HandleFunc("/customers/{id}", withJWTAuth(makeHTTPHandlerFunc(server.handleCustomersAndID), server.store))
+	router.HandleFunc("/customers/{id}", withJWTAuth(makeHTTPHandlerFunc(server.handleCustomersWithID), server.store))
 	router.HandleFunc("/products", withJWTAuth(makeHTTPHandlerFunc(server.handleProducts), server.store))
+	router.HandleFunc("/products/{id}", withJWTAuth(makeHTTPHandlerFunc(server.handleProductsWithID), server.store))
 
 	log.Println("JSON API server running on port: ", server.listenAddr)
 
@@ -75,8 +76,8 @@ func (server *APIServer) handleUsers(w http.ResponseWriter, r *http.Request) err
 	}
 }
 
-// handleUsersAndID handles requests to manage a user by ID.
-func (server *APIServer) handleUsersAndID(w http.ResponseWriter, r *http.Request) error {
+// handleUsersWithID handles requests to manage a user by ID.
+func (server *APIServer) handleUsersWithID(w http.ResponseWriter, r *http.Request) error {
 	switch r.Method {
 	case http.MethodGet:
 		return server.handleGetUserByID(w, r)
@@ -85,7 +86,7 @@ func (server *APIServer) handleUsersAndID(w http.ResponseWriter, r *http.Request
 	}
 }
 
-// handleCustomers handles customer logic.
+// handleCustomers handles get and post requests.
 func (server *APIServer) handleCustomers(w http.ResponseWriter, r *http.Request) error {
 	switch r.Method {
 	case http.MethodGet:
@@ -97,8 +98,8 @@ func (server *APIServer) handleCustomers(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-// handleCustomersAndID handles customer logic.
-func (server *APIServer) handleCustomersAndID(w http.ResponseWriter, r *http.Request) error {
+// handleCustomersWithID handles customer logic.
+func (server *APIServer) handleCustomersWithID(w http.ResponseWriter, r *http.Request) error {
 	switch r.Method {
 	case http.MethodGet:
 		return server.handleGetCustomerByID(w, r)
@@ -111,10 +112,27 @@ func (server *APIServer) handleCustomersAndID(w http.ResponseWriter, r *http.Req
 	}
 }
 
+// handleProducts handles get and post requests
 func (server *APIServer) handleProducts(w http.ResponseWriter, r *http.Request) error {
 	switch r.Method {
+	case http.MethodGet:
+		return server.handleGetProducts(w, r)
 	case http.MethodPost:
 		return server.handleCreateProduct(w, r)
+	default:
+		return fmt.Errorf("unsupported method: %s", r.Method)
+	}
+}
+
+// handleCustomersWithID handles get, update and delete requests.
+func (server *APIServer) handleProductsWithID(w http.ResponseWriter, r *http.Request) error {
+	switch r.Method {
+	case http.MethodGet:
+		return server.handleGetProductByID(w, r)
+	case http.MethodPut:
+		return server.handleUpdateProduct(w, r)
+	case http.MethodDelete:
+		return server.handleDeleteProduct(w, r)
 	default:
 		return fmt.Errorf("unsupported method: %s", r.Method)
 	}

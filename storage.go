@@ -6,17 +6,23 @@ import (
 )
 
 type Storage interface {
+	// Users
 	CreateUser(user *User) error
 	GetUsers() ([]*User, error)
 	GetUserByID(id string) (*User, error)
 	GetUserByEmail(email string) (*User, error)
+	// Customers
 	CreateCustomer(customer *Customer) error
 	GetCustomerByID(id string) (*Customer, error)
 	GetCustomers() ([]*Customer, error)
 	UpdateCustomer(customer *Customer) error
 	DeleteCustomer(id string) error
+	// Products
 	CreateProduct(product *Product) error
 	GetProductByID(id string) (*Product, error)
+	GetProducts() ([]*Product, error)
+	UpdateProduct(product *Product) error
+	DeleteProduct(id string) error
 }
 
 type PostgresStore struct {
@@ -35,6 +41,11 @@ func (s *PostgresStore) Init() error {
 	}
 
 	err = s.CreateProductsTable()
+	if err != nil {
+		return err
+	}
+
+	err = s.CreateSalesTablesWithRelations()
 	if err != nil {
 		return err
 	}
