@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"strings"
 )
 
 // WriteJSON writes the given data as JSON to the HTTP response with the provided status code.
@@ -51,4 +52,33 @@ func getID(r *http.Request) (string, error) {
 		return id, fmt.Errorf("invalid user id %s: %v", id, err)
 	}
 	return id, nil
+}
+
+// ConvertToDBArray converts a slice of strings to a format suitable for PostgreSQL array type.
+// Example:
+//
+//	input: []string{"foo", "bar"}
+//	output: "{\"foo\",\"bar\"}"
+func ConvertToDBArray(localString []string) string {
+	var quoted []string
+	for _, item := range localString {
+		escapedItem := strings.ReplaceAll(item, `"`, `\"`)
+		quoted = append(quoted, `"`+escapedItem+`"`)
+	}
+	return "{" + strings.Join(quoted, ",") + "}"
+}
+
+// ConvertFromDBArray converts a PostgreSQL array string to a slice of strings.
+// Example:
+//
+//	input: "{\"foo\",\"bar\"}"
+//	output: []string{"foo", "bar"}
+func ConvertFromDBArray(dbArray string) []string {
+	// Trim the curly braces from the input string
+	dbArray = strings.Trim(dbArray, "{}")
+	if dbArray == "" {
+		return nil
+	}
+	// Split the input string by commas to extract individual elements
+	return strings.Split(dbArray, ",")
 }

@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"strings"
 )
 
 func (s *PostgresStore) CreateProductsTable() error {
@@ -91,25 +90,6 @@ func (s *PostgresStore) CreateProductsTable() error {
 	}
 
 	return nil
-}
-
-// ConvertToDBArray converts a slice of strings to a format suitable for postgres array type
-func ConvertToDBArray(colors []string) string {
-	var quoted []string
-	for _, color := range colors {
-		escapedColor := strings.ReplaceAll(color, `"`, `\"`)
-		quoted = append(quoted, `"`+escapedColor+`"`)
-	}
-	return "{" + strings.Join(quoted, ",") + "}"
-}
-
-// ConvertFromDBArray converts a PostgreSQL array to a slice of strings
-func ConvertFromDBArray(dbArray string) []string {
-	dbArray = strings.Trim(dbArray, "{}") // Remove the curly braces
-	if dbArray == "" {
-		return nil
-	}
-	return strings.Split(dbArray, ",")
 }
 
 func (s *PostgresStore) CreateProduct(product *Product) error {
