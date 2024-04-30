@@ -195,15 +195,21 @@ func (s *PostgresStore) CreateSale(sale *SaleWithProducts) error {
 		return err
 	}
 
+	fmt.Println("pvIDs: ", pvIDs)
+
 	customer, err := s.GetCustomerByID(sale.CustomerID)
 	if err != nil {
 		return err
 	}
 
+	fmt.Println("customer: ", customer)
+
 	saleID, err := createSale(customer, s)
 	if err != nil {
 		return err
 	}
+
+	fmt.Println("saleID: ", saleID)
 
 	err = createSaleProducts(saleID, pvIDs, s)
 	if err != nil {
@@ -213,7 +219,7 @@ func (s *PostgresStore) CreateSale(sale *SaleWithProducts) error {
 	return nil
 }
 
-// createProductVariations inserts product variations in multiple rows
+// createProductVariations inserts product variations
 func createProductVariations(sale *SaleWithProducts, s *PostgresStore) ([]string, error) {
 	tx, err := s.db.Begin()
 	if err != nil {
