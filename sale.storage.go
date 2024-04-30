@@ -191,28 +191,31 @@ func (s *PostgresStore) CreateSalesTablesWithRelations() error {
 	return nil
 }
 
-func (s *PostgresStore) CreateSale(sale *SaleWithProducts) (string, error) {
+func (s *PostgresStore) CreateSale(sale *SaleWithProducts) error {
 	pvIDs, err := createProductVariations(sale, s)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	customer, err := s.GetCustomerByID(sale.CustomerID)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	saleID, err := createSale(customer, s)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	err = createSaleProducts(saleID, pvIDs, s)
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	return saleID, nil
+	// Set the ID of the inserted sale (sales table)
+	sale.ID = saleID
+
+	return nil
 }
 
 // createProductVariations inserts product variations

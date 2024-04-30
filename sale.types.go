@@ -17,6 +17,7 @@ import "time"
 //}
 
 type SaleWithProducts struct {
+	ID         string              `json:"id"`
 	CustomerID string              `json:"customer_id"`
 	Products   []ProductVariations `json:"products"`
 }

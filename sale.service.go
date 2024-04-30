@@ -19,13 +19,13 @@ func (server *APIServer) handleCreateSale(w http.ResponseWriter, r *http.Request
 		return err
 	}
 
-	saleID, err := server.store.CreateSale(sale)
+	err = server.store.CreateSale(sale)
 	if err != nil {
 		return err
 	}
 
 	// Recovering product from DB
-	createdSale, err := server.store.GetSaleByID(saleID)
+	createdSale, err := server.store.GetSaleByID(sale.ID)
 	if err != nil {
 		return err
 	}

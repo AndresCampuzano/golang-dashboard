@@ -24,7 +24,7 @@ type Storage interface {
 	UpdateProduct(product *Product) error
 	DeleteProduct(id string) error
 	// Sales
-	CreateSale(sale *SaleWithProducts) (string, error)
+	CreateSale(sale *SaleWithProducts) error
 	GetSales() ([]*SaleResponse, error)
 	GetSaleByID(id string) (*SaleResponse, error)
 }
