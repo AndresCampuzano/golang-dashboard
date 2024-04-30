@@ -23,6 +23,8 @@ type Storage interface {
 	GetProducts() ([]*Product, error)
 	UpdateProduct(product *Product) error
 	DeleteProduct(id string) error
+	// Sales
+	CreateSale(sale *SaleWithProducts) error
 }
 
 type PostgresStore struct {
