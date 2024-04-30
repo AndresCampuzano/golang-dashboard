@@ -195,21 +195,15 @@ func (s *PostgresStore) CreateSale(sale *SaleWithProducts) error {
 		return err
 	}
 
-	fmt.Println("pvIDs: ", pvIDs)
-
 	customer, err := s.GetCustomerByID(sale.CustomerID)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("customer: ", customer)
-
 	saleID, err := createSale(customer, s)
 	if err != nil {
 		return err
 	}
-
-	fmt.Println("saleID: ", saleID)
 
 	err = createSaleProducts(saleID, pvIDs, s)
 	if err != nil {
@@ -219,15 +213,24 @@ func (s *PostgresStore) CreateSale(sale *SaleWithProducts) error {
 	return nil
 }
 
-// createProductVariations inserts product variations
+// createProductVariations inserts product variations in multiple rows
 func createProductVariations(sale *SaleWithProducts, s *PostgresStore) ([]string, error) {
-	// Begin a transaction
 	tx, err := s.db.Begin()
 	if err != nil {
 		return nil, fmt.Errorf("error starting transaction: %v", err)
 	}
+	defer func() {
+		if err != nil {
+			if rollbackErr := tx.Rollback(); rollbackErr != nil {
+				log.Printf("error rolling back transaction: %v", rollbackErr)
+			}
+			return
+		}
+		if err := tx.Commit(); err != nil {
+			log.Printf("error committing transaction: %v", err)
+		}
+	}()
 
-	// Prepare the COPY command
 	copyIn, err := tx.Prepare(pq.CopyIn(
 		"product_variations",
 		"product_id",
@@ -239,16 +242,14 @@ func createProductVariations(sale *SaleWithProducts, s *PostgresStore) ([]string
 	if err != nil {
 		return nil, fmt.Errorf("error preparing COPY statement: %v", err)
 	}
-	defer func(copyIn *sql.Stmt) {
-		err := copyIn.Close()
-		if err != nil {
-			log.Fatal(err)
+	defer func() {
+		if err := copyIn.Close(); err != nil {
+			log.Printf("error closing prepared statement: %v", err)
 		}
-	}(copyIn)
+	}()
 
-	// Queue the data to be copied
 	for _, product := range sale.Products {
-		_, err = copyIn.Exec(
+		_, err := copyIn.Exec(
 			product.ProductID,
 			product.Color,
 			product.Price,
@@ -260,34 +261,23 @@ func createProductVariations(sale *SaleWithProducts, s *PostgresStore) ([]string
 		}
 	}
 
-	// Execute the COPY command
 	_, err = copyIn.Exec()
 	if err != nil {
 		return nil, fmt.Errorf("error executing COPY statement: %v", err)
 	}
 
-	// Commit the transaction
-	err = tx.Commit()
-	if err != nil {
-		return nil, fmt.Errorf("error committing transaction: %v", err)
-	}
-
-	// Query the database to fetch IDs of the inserted records
-	rows, err := s.db.Query("SELECT id FROM product_variations ORDER BY created_at DESC LIMIT $1", len(sale.Products))
+	// Fetch IDs of the inserted records
+	rows, err := tx.Query("SELECT id FROM product_variations ORDER BY created_at DESC LIMIT $1", len(sale.Products))
 	if err != nil {
 		return nil, fmt.Errorf("error fetching IDs: %v", err)
 	}
-	defer func(rows *sql.Rows) {
-		err := rows.Close()
-		if err != nil {
-			log.Fatal(err)
+	defer func() {
+		if err := rows.Close(); err != nil {
+			log.Printf("error closing rows: %v", err)
 		}
-	}(rows)
+	}()
 
-	// Slice to store IDs of inserted records
 	var insertedIDs []string
-
-	// Extract IDs from the result set
 	for rows.Next() {
 		var id string
 		if err := rows.Scan(&id); err != nil {
