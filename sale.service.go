@@ -19,16 +19,38 @@ func (server *APIServer) handleCreateSale(w http.ResponseWriter, r *http.Request
 		return err
 	}
 
-	if err := server.store.CreateSale(sale); err != nil {
+	saleID, err := server.store.CreateSale(sale)
+	if err != nil {
 		return err
 	}
 
 	// Recovering product from DB
-	//createdProduct, err := server.store.GetProductByID(product.ID)
-	//if err != nil {
-	//	return err
-	//}
+	createdSale, err := server.store.GetSaleByID(saleID)
+	if err != nil {
+		return err
+	}
 
-	// Return the newly created product in the response
-	return WriteJSON(w, http.StatusOK, nil)
+	return WriteJSON(w, http.StatusOK, createdSale)
+}
+
+func (server *APIServer) handleGetSales(w http.ResponseWriter, r *http.Request) error {
+	sales, err := server.store.GetSales()
+	if err != nil {
+		return err
+	}
+	return WriteJSON(w, http.StatusOK, sales)
+}
+
+func (server *APIServer) handleGetSaleByID(w http.ResponseWriter, r *http.Request) error {
+	id, err := getID(r)
+	if err != nil {
+		return err
+	}
+
+	sale, err := server.store.GetSaleByID(id)
+	if err != nil {
+		return err
+	}
+
+	return WriteJSON(w, http.StatusOK, sale)
 }

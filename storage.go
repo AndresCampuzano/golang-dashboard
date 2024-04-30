@@ -24,7 +24,9 @@ type Storage interface {
 	UpdateProduct(product *Product) error
 	DeleteProduct(id string) error
 	// Sales
-	CreateSale(sale *SaleWithProducts) error
+	CreateSale(sale *SaleWithProducts) (string, error)
+	GetSales() ([]*SaleResponse, error)
+	GetSaleByID(id string) (*SaleResponse, error)
 }
 
 type PostgresStore struct {

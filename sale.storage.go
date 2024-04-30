@@ -2,18 +2,20 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"github.com/lib/pq"
 	"log"
+	"time"
 )
 
 func (s *PostgresStore) CreateSalesTablesWithRelations() error {
 	// Create the table if it doesn't exist
 	_, err := s.db.Exec(`
-        -- Create a table to store product variations
+		-- Create a table to store product variations
 		CREATE TABLE IF NOT EXISTS product_variations (
 			id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-			product_id UUID REFERENCES products(id), -- Foreign key referencing the products table
+			product_id UUID REFERENCES products(id) ON DELETE CASCADE,
 			color VARCHAR(20) NOT NULL,
 			price BIGINT NOT NULL,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -23,7 +25,7 @@ func (s *PostgresStore) CreateSalesTablesWithRelations() error {
 		-- Create a table to store sales information
 		CREATE TABLE IF NOT EXISTS sales (
 			id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-			customer_id UUID REFERENCES customers(id), -- Foreign key referencing the customers table
+			customer_id UUID REFERENCES customers(id) ON DELETE CASCADE,
 -- 			sale_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
 			 -- Snapshot of customer
 			customer_name VARCHAR(255),
@@ -40,8 +42,8 @@ func (s *PostgresStore) CreateSalesTablesWithRelations() error {
 		
 		-- Create a mapping table to associate products with sales
 		CREATE TABLE IF NOT EXISTS sale_products (
-			sale_id UUID REFERENCES sales(id),
-			product_variation_id UUID REFERENCES product_variations(id),
+			sale_id UUID REFERENCES sales(id) ON DELETE CASCADE,
+			product_variation_id UUID REFERENCES product_variations(id) ON DELETE CASCADE,
 			PRIMARY KEY (sale_id, product_variation_id)
 		);
     `)
@@ -189,34 +191,28 @@ func (s *PostgresStore) CreateSalesTablesWithRelations() error {
 	return nil
 }
 
-func (s *PostgresStore) CreateSale(sale *SaleWithProducts) error {
+func (s *PostgresStore) CreateSale(sale *SaleWithProducts) (string, error) {
 	pvIDs, err := createProductVariations(sale, s)
 	if err != nil {
-		return err
+		return "", err
 	}
-
-	fmt.Println("pvIDs: ", pvIDs)
 
 	customer, err := s.GetCustomerByID(sale.CustomerID)
 	if err != nil {
-		return err
+		return "", err
 	}
-
-	fmt.Println("customer: ", customer)
 
 	saleID, err := createSale(customer, s)
 	if err != nil {
-		return err
+		return "", err
 	}
-
-	fmt.Println("saleID: ", saleID)
 
 	err = createSaleProducts(saleID, pvIDs, s)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return saleID, nil
 }
 
 // createProductVariations inserts product variations
@@ -308,16 +304,22 @@ func createSale(customerInSale *Customer, s *PostgresStore) (string, error) {
 			customer_address,
 			customer_city,
 			customer_department,
-			customer_comments
+			customer_comments,
+		    created_at,
+		    updated_at
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         RETURNING id
     `
+
+	// Resets customer's createdAt and updatedAt
+	customerInSale.CreatedAt = time.Time{}
+	customerInSale.UpdatedAt = time.Time{}
 
 	var id string
 	err := s.db.QueryRow(
 		query,
-		customerInSale.ID, // belongs to customer_id, not sale ID
+		customerInSale.ID,
 		customerInSale.Name,
 		customerInSale.InstagramAccount,
 		customerInSale.Phone,
@@ -325,13 +327,15 @@ func createSale(customerInSale *Customer, s *PostgresStore) (string, error) {
 		customerInSale.City,
 		customerInSale.Department,
 		customerInSale.Comments,
+		customerInSale.CreatedAt,
+		customerInSale.UpdatedAt,
 	).Scan(&id)
 	if err != nil {
 		return "", err
 	}
 
 	// Set the ID of the inserted sale
-	customerInSale.ID = id
+	customerInSale.ID = id // sale ID
 
 	return id, nil
 }
@@ -382,4 +386,147 @@ func createSaleProducts(saleID string, pvIDs []string, s *PostgresStore) error {
 		return fmt.Errorf("error committing transaction: %v", err)
 	}
 	return nil
+}
+
+func (s *PostgresStore) GetSales() ([]*SaleResponse, error) {
+	rows, err := s.db.Query(`
+		SELECT
+			s.id,
+			s.customer_id,
+			s.customer_name,
+			s.customer_instagram_account,
+			s.customer_phone,
+			s.customer_address,
+			s.customer_city,
+			s.customer_department,
+			s.customer_comments,
+			s.created_at,
+			s.updated_at,
+			JSON_AGG(JSON_BUILD_OBJECT(
+				'id', pv.id,
+				'color', pv.color,
+				'price', pv.price
+			)) AS product_variations
+		FROM
+			sales s
+		JOIN
+			sale_products sp ON s.id = sp.sale_id
+		JOIN
+			product_variations pv ON sp.product_variation_id = pv.id
+		GROUP BY
+			s.id,
+			s.customer_id,
+			s.customer_name,
+			s.customer_instagram_account,
+			s.customer_phone,
+			s.customer_address,
+			s.customer_city,
+			s.customer_department,
+			s.customer_comments,
+			s.created_at,
+			s.updated_at;
+`)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(rows)
+
+	var sales []*SaleResponse
+	for rows.Next() {
+		sale, err := scanIntoSales(rows)
+		if err != nil {
+			return nil, err
+		}
+
+		sales = append(sales, sale)
+	}
+
+	return sales, nil
+}
+
+func scanIntoSales(rows *sql.Rows) (*SaleResponse, error) {
+	sale := new(SaleResponse)
+	var productVariationsJSON []byte
+	err := rows.Scan(
+		&sale.ID,
+		&sale.CustomerID,
+		&sale.CustomerName,
+		&sale.CustomerInstagramAccount,
+		&sale.CustomerPhone,
+		&sale.CustomerAddress,
+		&sale.CustomerCity,
+		&sale.CustomerDepartment,
+		&sale.CustomerComments,
+		&sale.CreatedAt,
+		&sale.UpdatedAt,
+		&productVariationsJSON, // Scan JSON data into a []byte
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// Unmarshal JSON data into slice
+	err = json.Unmarshal(productVariationsJSON, &sale.ProductVariations)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshaling product_variations JSON: %v", err)
+	}
+
+	return sale, nil
+}
+
+func (s *PostgresStore) GetSaleByID(id string) (*SaleResponse, error) {
+	rows, err := s.db.Query(`
+		SELECT
+			s.id,
+			s.customer_id,
+			s.customer_name,
+			s.customer_instagram_account,
+			s.customer_phone,
+			s.customer_address,
+			s.customer_city,
+			s.customer_department,
+			s.customer_comments,
+			s.created_at,
+			s.updated_at,
+			JSON_AGG(JSON_BUILD_OBJECT(
+				'id', pv.id,
+				'color', pv.color,
+				'price', pv.price
+			)) AS product_variations
+		FROM
+			sales s
+		JOIN
+			sale_products sp ON s.id = sp.sale_id
+		JOIN
+			product_variations pv ON sp.product_variation_id = pv.id
+		WHERE
+			s.id = $1
+		GROUP BY
+			s.id,
+			s.customer_id,
+			s.customer_name,
+			s.customer_instagram_account,
+			s.customer_phone,
+			s.customer_address,
+			s.customer_city,
+			s.customer_department,
+			s.customer_comments,
+			s.created_at,
+			s.updated_at;
+	`, id)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		return scanIntoSales(rows)
+	}
+
+	return nil, fmt.Errorf("sale [%s] not found", id)
 }

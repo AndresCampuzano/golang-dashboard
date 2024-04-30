@@ -2,19 +2,19 @@ package main
 
 import "time"
 
-type Sale struct {
-	ID                       string    `json:"id"`
-	CustomerID               string    `json:"customer_id"`
-	CustomerName             string    `json:"customer_name"`
-	CustomerInstagramAccount string    `json:"customer_instagram_account"`
-	CustomerPhone            int       `json:"customer_phone"`
-	CustomerAddress          string    `json:"customer_address"`
-	CustomerCity             string    `json:"customer_city"`
-	CustomerDepartment       string    `json:"customer_department"`
-	CustomerComments         string    `json:"customer_comments"`
-	CreatedAt                time.Time `json:"created_at"`
-	UpdatedAt                time.Time `json:"updated_at"`
-}
+//type Sale struct {
+//	ID                       string    `json:"id"`
+//	CustomerID               string    `json:"customer_id"`
+//	CustomerName             string    `json:"customer_name"`
+//	CustomerInstagramAccount string    `json:"customer_instagram_account"`
+//	CustomerPhone            int       `json:"customer_phone"`
+//	CustomerAddress          string    `json:"customer_address"`
+//	CustomerCity             string    `json:"customer_city"`
+//	CustomerDepartment       string    `json:"customer_department"`
+//	CustomerComments         string    `json:"customer_comments"`
+//	CreatedAt                time.Time `json:"created_at"`
+//	UpdatedAt                time.Time `json:"updated_at"`
+//}
 
 type SaleWithProducts struct {
 	CustomerID string              `json:"customer_id"`
@@ -35,15 +35,25 @@ type ProductVariations struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-type CreateProductVariationsRequest struct {
-	ProductID string `json:"product_id"`
-	Color     string `json:"color"`
-	Price     int    `json:"price"`
+type ProductVariationsResponse struct {
+	ID    string `json:"id"`
+	Color string `json:"color"`
+	Price int    `json:"price"`
 }
 
-type SaleProducts struct {
-	SaleID             string `json:"sale_id"`
-	ProductVariationID string `json:"product_variation_id"`
+type SaleResponse struct {
+	ID                       string                      `json:"id"`
+	CustomerID               string                      `json:"customer_id"`
+	CustomerName             string                      `json:"customer_name"`
+	CustomerInstagramAccount string                      `json:"customer_instagram_account"`
+	CustomerPhone            int                         `json:"customer_phone"`
+	CustomerAddress          string                      `json:"customer_address"`
+	CustomerCity             string                      `json:"customer_city"`
+	CustomerDepartment       string                      `json:"customer_department"`
+	CustomerComments         string                      `json:"customer_comments"`
+	CreatedAt                time.Time                   `json:"created_at"`
+	UpdatedAt                time.Time                   `json:"updated_at"`
+	ProductVariations        []ProductVariationsResponse `json:"product_variations"`
 }
 
 func NewSale(
