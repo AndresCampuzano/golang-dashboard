@@ -33,7 +33,7 @@ func (server *APIServer) handleCreateSale(w http.ResponseWriter, r *http.Request
 	return WriteJSON(w, http.StatusOK, createdSale)
 }
 
-func (server *APIServer) handleGetSales(w http.ResponseWriter, r *http.Request) error {
+func (server *APIServer) handleGetSales(w http.ResponseWriter, _ *http.Request) error {
 	sales, err := server.store.GetSales()
 	if err != nil {
 		return err
