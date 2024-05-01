@@ -12,12 +12,13 @@ func (s *PostgresStore) CreateCustomersTable() error {
         CREATE TABLE IF NOT EXISTS customers (
             id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
             name VARCHAR(255) NOT NULL,
-            instagram_account VARCHAR(255) NOT NULL UNIQUE,
+            instagram_account VARCHAR(255) NOT NULL,
             phone BIGINT,
             address VARCHAR(255) NOT NULL,
             city VARCHAR(255) NOT NULL,
             department VARCHAR(255) NOT NULL,
             comments VARCHAR(255) NOT NULL,
+            cc VARCHAR(255) NOT NULL, 
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -105,11 +106,12 @@ func (s *PostgresStore) CreateCustomer(customer *Customer) error {
 			address, 
 			city, 
 			department, 
-			comments, 
+			comments,
+			cc,
 			created_at, 
 			updated_at 
         ) 
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
         RETURNING id
     `
 
@@ -123,6 +125,7 @@ func (s *PostgresStore) CreateCustomer(customer *Customer) error {
 		customer.City,
 		customer.Department,
 		customer.Comments,
+		customer.Cc,
 		customer.CreatedAt,
 		customer.UpdatedAt,
 	).Scan(&id)
@@ -160,6 +163,7 @@ func scanIntoCustomers(rows *sql.Rows) (*Customer, error) {
 		&customer.City,
 		&customer.Department,
 		&customer.Comments,
+		&customer.Cc,
 		&customer.CreatedAt,
 		&customer.UpdatedAt,
 	)
@@ -203,8 +207,9 @@ func (s *PostgresStore) UpdateCustomer(customer *Customer) error {
 		    address = $4, 
 		    city = $5, 
 		    department = $6, 
-		    comments = $7
-		WHERE id = $8
+		    comments = $7,
+		    cc = $8
+		WHERE id = $9
 	`
 
 	_, err := s.db.Exec(
@@ -216,6 +221,7 @@ func (s *PostgresStore) UpdateCustomer(customer *Customer) error {
 		customer.City,
 		customer.Department,
 		customer.Comments,
+		customer.Cc,
 		customer.ID,
 	)
 	if err != nil {

@@ -11,6 +11,7 @@ type Customer struct {
 	City             string    `json:"city"`
 	Department       string    `json:"department"`
 	Comments         string    `json:"comments"`
+	Cc               string    `json:"cc"`
 	CreatedAt        time.Time `json:"created_at"`
 	UpdatedAt        time.Time `json:"updated_at"`
 }
@@ -23,6 +24,7 @@ type CreateCustomerRequest struct {
 	City             string `json:"city"`
 	Department       string `json:"department"`
 	Comments         string `json:"comments"`
+	Cc               string `json:"cc"`
 }
 
 //type UpdateCustomerRequest struct {
@@ -33,6 +35,7 @@ type CreateCustomerRequest struct {
 //	City             string `json:"city"`
 //	Department       string `json:"department"`
 //	Comments         string `json:"comments"`
+//	Cc         		 string `json:"cc"`
 //}
 
 func NewCustomer(
@@ -43,6 +46,7 @@ func NewCustomer(
 	city string,
 	department string,
 	comments string,
+	cc string,
 ) (*Customer, error) {
 	return &Customer{
 		Name:             name,
@@ -52,5 +56,6 @@ func NewCustomer(
 		City:             city,
 		Department:       department,
 		Comments:         comments,
+		Cc:               cc,
 	}, nil
 }

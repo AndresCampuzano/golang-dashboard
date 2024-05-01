@@ -19,6 +19,7 @@ func (server *APIServer) handleCreateCustomer(w http.ResponseWriter, r *http.Req
 		req.City,
 		req.Department,
 		req.Comments,
+		req.Cc,
 	)
 	if err != nil {
 		return err
