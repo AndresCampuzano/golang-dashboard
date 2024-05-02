@@ -27,6 +27,12 @@ type Storage interface {
 	CreateSale(sale *SaleWithProducts) error
 	GetSales() ([]*SaleResponse, error)
 	GetSaleByID(id string) (*SaleResponse, error)
+	// Expenses
+	CreateExpense(expense *Expense) error
+	GetExpenseByID(id string) (*Expense, error)
+	GetExpenses() ([]*Expense, error)
+	UpdateExpense(expense *Expense) error
+	DeleteExpense(id string) error
 }
 
 type PostgresStore struct {
@@ -50,6 +56,11 @@ func (s *PostgresStore) Init() error {
 	}
 
 	err = s.CreateSalesTablesWithRelations()
+	if err != nil {
+		return err
+	}
+
+	err = s.CreateExpensesTable()
 	if err != nil {
 		return err
 	}

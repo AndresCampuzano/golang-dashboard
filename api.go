@@ -38,6 +38,8 @@ func (server *APIServer) Run() {
 	router.HandleFunc("/products/{id}", withJWTAuth(makeHTTPHandlerFunc(server.handleProductsWithID), server.store))
 	router.HandleFunc("/sales", withJWTAuth(makeHTTPHandlerFunc(server.handleSales), server.store))
 	router.HandleFunc("/sales/{id}", withJWTAuth(makeHTTPHandlerFunc(server.handleSalesWithID), server.store))
+	router.HandleFunc("/expenses", withJWTAuth(makeHTTPHandlerFunc(server.handleExpenses), server.store))
+	router.HandleFunc("/expenses/{id}", withJWTAuth(makeHTTPHandlerFunc(server.handleExpensesWithID), server.store))
 
 	log.Println("JSON API server running on port: ", server.listenAddr)
 
@@ -157,6 +159,32 @@ func (server *APIServer) handleSalesWithID(w http.ResponseWriter, r *http.Reques
 	switch r.Method {
 	case http.MethodGet:
 		return server.handleGetSaleByID(w, r)
+	default:
+		return fmt.Errorf("unsupported method: %s", r.Method)
+	}
+}
+
+// handleExpenses handles get and post requests
+func (server *APIServer) handleExpenses(w http.ResponseWriter, r *http.Request) error {
+	switch r.Method {
+	case http.MethodGet:
+		return server.handleGetExpenses(w, r)
+	case http.MethodPost:
+		return server.handleCreateExpense(w, r)
+	default:
+		return fmt.Errorf("unsupported method: %s", r.Method)
+	}
+}
+
+// handleExpensesWithID handles get, update and delete requests
+func (server *APIServer) handleExpensesWithID(w http.ResponseWriter, r *http.Request) error {
+	switch r.Method {
+	case http.MethodGet:
+		return server.handleGetExpenseByID(w, r)
+	case http.MethodPut:
+		return server.handleUpdateExpense(w, r)
+	case http.MethodDelete:
+		return server.handleDeleteExpense(w, r)
 	default:
 		return fmt.Errorf("unsupported method: %s", r.Method)
 	}
