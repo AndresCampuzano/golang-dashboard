@@ -2,20 +2,6 @@ package main
 
 import "time"
 
-//type Sale struct {
-//	ID                       string    `json:"id"`
-//	CustomerID               string    `json:"customer_id"`
-//	CustomerName             string    `json:"customer_name"`
-//	CustomerInstagramAccount string    `json:"customer_instagram_account"`
-//	CustomerPhone            int       `json:"customer_phone"`
-//	CustomerAddress          string    `json:"customer_address"`
-//	CustomerCity             string    `json:"customer_city"`
-//	CustomerDepartment       string    `json:"customer_department"`
-//	CustomerComments         string    `json:"customer_comments"`
-//	CreatedAt                time.Time `json:"created_at"`
-//	UpdatedAt                time.Time `json:"updated_at"`
-//}
-
 type SaleWithProducts struct {
 	ID         string              `json:"id"`
 	CustomerID string              `json:"customer_id"`
@@ -52,6 +38,7 @@ type SaleResponse struct {
 	CustomerCity             string                      `json:"customer_city"`
 	CustomerDepartment       string                      `json:"customer_department"`
 	CustomerComments         string                      `json:"customer_comments"`
+	CustomerCc               string                      `json:"customer_cc"`
 	CreatedAt                time.Time                   `json:"created_at"`
 	UpdatedAt                time.Time                   `json:"updated_at"`
 	ProductVariations        []ProductVariationsResponse `json:"product_variations"`

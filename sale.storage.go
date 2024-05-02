@@ -35,6 +35,7 @@ func (s *PostgresStore) CreateSalesTablesWithRelations() error {
 			customer_city VARCHAR(255),
 			customer_department VARCHAR(255),
 			customer_comments VARCHAR(255),
+			customer_cc VARCHAR(255),
 			-- End Snapshot of customer
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -308,10 +309,11 @@ func createSale(customerInSale *Customer, s *PostgresStore) (string, error) {
 			customer_city,
 			customer_department,
 			customer_comments,
+			customer_cc,
 		    created_at,
 		    updated_at
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
         RETURNING id
     `
 
@@ -330,6 +332,7 @@ func createSale(customerInSale *Customer, s *PostgresStore) (string, error) {
 		customerInSale.City,
 		customerInSale.Department,
 		customerInSale.Comments,
+		customerInSale.Cc,
 		customerInSale.CreatedAt,
 		customerInSale.UpdatedAt,
 	).Scan(&id)
@@ -403,6 +406,7 @@ func (s *PostgresStore) GetSales() ([]*SaleResponse, error) {
 			s.customer_city,
 			s.customer_department,
 			s.customer_comments,
+			s.customer_cc,
 			s.created_at,
 			s.updated_at,
 			JSON_AGG(JSON_BUILD_OBJECT(
@@ -426,6 +430,7 @@ func (s *PostgresStore) GetSales() ([]*SaleResponse, error) {
 			s.customer_city,
 			s.customer_department,
 			s.customer_comments,
+			s.customer_cc,
 			s.created_at,
 			s.updated_at;
 `)
@@ -466,6 +471,7 @@ func scanIntoSales(rows *sql.Rows) (*SaleResponse, error) {
 		&sale.CustomerCity,
 		&sale.CustomerDepartment,
 		&sale.CustomerComments,
+		&sale.CustomerCc,
 		&sale.CreatedAt,
 		&sale.UpdatedAt,
 		&productVariationsJSON, // Scan JSON data into a []byte
@@ -495,6 +501,7 @@ func (s *PostgresStore) GetSaleByID(id string) (*SaleResponse, error) {
 			s.customer_city,
 			s.customer_department,
 			s.customer_comments,
+			s.customer_cc,
 			s.created_at,
 			s.updated_at,
 			JSON_AGG(JSON_BUILD_OBJECT(
@@ -520,6 +527,7 @@ func (s *PostgresStore) GetSaleByID(id string) (*SaleResponse, error) {
 			s.customer_city,
 			s.customer_department,
 			s.customer_comments,
+			s.customer_cc,
 			s.created_at,
 			s.updated_at;
 	`, id)
