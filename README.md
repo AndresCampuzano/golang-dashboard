@@ -56,7 +56,7 @@ This is a JSON API server written in Go that provides endpoints for managing use
 The server uses PostgreSQL as its database backend. It provides a `NewPostgresStore` function to create a new instance of `PostgresStore`, which establishes a connection to the PostgreSQL database and initializes necessary extensions.
 
 #### AWS S3 Integration
-The server integrates with AWS S3 for file storage. The BucketBasics struct encapsulates Amazon S3 actions such as uploading and deleting files. It provides methods for uploading base64-encoded images to an S3 bucket and deleting files from the bucket.
+The server integrates with AWS S3 for file storage. The `BucketBasics` struct encapsulates Amazon S3 actions such as uploading and deleting files. It provides methods for uploading base64-encoded images to an S3 bucket and deleting files from the bucket.
 
 #### Helper Functions
 The server includes helper functions for handling JSON responses, HTTP request routing, and working with PostgreSQL array types.
@@ -102,6 +102,9 @@ The server exposes the following endpoints:
 
 - `POST /login`: User login
 - `POST /signup`: User sign up
+
+***Protected routes with JWT***
+
 - `GET /users`: Get all users
 - `GET /users/{id}`: Get user by ID
 - `GET /customers`: Get all customers
