@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://cdn-icons-png.flaticon.com/512/919/919838.png" width="100"  alt="cloud-img"/>
+  <img src="https://cdn-icons-png.flaticon.com/512/919/919838.png" width="100"  alt="golang-pet"/>
 </p>
 <h1 align="center">GOLANG-DASHBOARD</h1>
 <p align="center">
