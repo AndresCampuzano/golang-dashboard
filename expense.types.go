@@ -8,6 +8,7 @@ type Expense struct {
 	Price       int       `json:"price"`
 	Type        string    `json:"type"`
 	Description string    `json:"description"`
+	Currency    string    `json:"currency"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
@@ -18,6 +19,7 @@ type CreateExpenseRequest struct {
 	Price       int    `json:"price"`
 	Type        string `json:"type"`
 	Description string `json:"description"`
+	Currency    string `json:"currency"`
 }
 
 func NewExpense(
@@ -25,11 +27,13 @@ func NewExpense(
 	price int,
 	exType string,
 	description string,
+	currency string,
 ) (*Expense, error) {
 	return &Expense{
 		Name:        name,
 		Price:       price,
 		Type:        exType,
 		Description: description,
+		Currency:    currency,
 	}, nil
 }

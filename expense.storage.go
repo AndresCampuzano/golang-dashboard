@@ -15,6 +15,7 @@ func (s *PostgresStore) CreateExpensesTable() error {
             price BIGINT NOT NULL,
             type VARCHAR(255) NOT NULL,
             description VARCHAR(255) NOT NULL,
+            currency VARCHAR(255) NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -100,10 +101,11 @@ func (s *PostgresStore) CreateExpense(expense *Expense) error {
 			price, 
 			type, 
 			description, 
+			currency, 
 			created_at, 
 			updated_at 
         ) 
-        VALUES ($1, $2, $3, $4, $5, $6) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7) 
         RETURNING id
     `
 
@@ -114,6 +116,7 @@ func (s *PostgresStore) CreateExpense(expense *Expense) error {
 		expense.Price,
 		expense.Type,
 		expense.Description,
+		expense.Currency,
 		expense.CreatedAt,
 		expense.UpdatedAt,
 	).Scan(&id)
@@ -148,6 +151,7 @@ func scanIntoExpenses(rows *sql.Rows) (*Expense, error) {
 		&expense.Price,
 		&expense.Type,
 		&expense.Description,
+		&expense.Currency,
 		&expense.CreatedAt,
 		&expense.UpdatedAt,
 	)
@@ -188,8 +192,9 @@ func (s *PostgresStore) UpdateExpense(expense *Expense) error {
 		    name = $1, 
 		    price = $2, 
 		    type = $3, 
-		    description = $4
-		WHERE id = $5
+		    description = $4,
+		    currency = $5
+		WHERE id = $6
 	`
 
 	_, err := s.db.Exec(
@@ -198,6 +203,7 @@ func (s *PostgresStore) UpdateExpense(expense *Expense) error {
 		expense.Price,
 		expense.Type,
 		expense.Description,
+		expense.Currency,
 		expense.ID,
 	)
 	if err != nil {

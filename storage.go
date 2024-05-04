@@ -25,8 +25,9 @@ type Storage interface {
 	DeleteProduct(id string) error
 	// Sales
 	CreateSale(sale *SaleWithProducts) error
-	GetSales() ([]*SaleResponse, error)
 	GetSaleByID(id string) (*SaleResponse, error)
+	GetSales() ([]*SaleResponse, error)
+	GetSalesByMonth() ([]*SaleResponseSortedByMonth, error)
 	// Expenses
 	CreateExpense(expense *Expense) error
 	GetExpenseByID(id string) (*Expense, error)

@@ -16,6 +16,7 @@ func (server *APIServer) handleCreateExpense(w http.ResponseWriter, r *http.Requ
 		req.Price,
 		req.Type,
 		req.Description,
+		req.Currency,
 	)
 	if err != nil {
 		return err

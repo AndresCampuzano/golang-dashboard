@@ -458,6 +458,75 @@ func (s *PostgresStore) GetSales() ([]*SaleResponse, error) {
 	return sales, nil
 }
 
+func (s *PostgresStore) GetSalesByMonth() ([]*SaleResponseSortedByMonth, error) {
+	rows, err := s.db.Query(`
+		SELECT
+			DATE_TRUNC('month', s.created_at) AS sale_month,
+			s.id,
+			s.customer_id,
+			s.customer_name,
+			s.customer_instagram_account,
+			s.customer_phone,
+			s.customer_address,
+			s.customer_city,
+			s.customer_department,
+			s.customer_comments,
+			s.customer_cc,
+			s.created_at,
+			s.updated_at,
+			JSON_AGG(JSON_BUILD_OBJECT(
+				'id', pv.id,
+				'color', pv.color,
+				'price', pv.price
+			)) AS product_variations
+		FROM
+			sales s
+		JOIN
+			sale_products sp ON s.id = sp.sale_id
+		JOIN
+			product_variations pv ON sp.product_variation_id = pv.id
+		GROUP BY
+			sale_month,
+			s.id,
+			s.customer_id,
+			s.customer_name,
+			s.customer_instagram_account,
+			s.customer_phone,
+			s.customer_address,
+			s.customer_city,
+			s.customer_department,
+			s.customer_comments,
+			s.customer_cc,
+			s.created_at,
+			s.updated_at
+		ORDER BY
+			sale_month DESC,
+			s.created_at DESC;
+	`)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(rows)
+
+	var sales []*SaleResponseSortedByMonth
+	for rows.Next() {
+		sale, err := scanIntoSalesSortedByMoth(rows)
+		if err != nil {
+			return nil, err
+		}
+
+		sales = append(sales, sale)
+	}
+
+	return sales, nil
+}
+
 func scanIntoSales(rows *sql.Rows) (*SaleResponse, error) {
 	sale := new(SaleResponse)
 	var productVariationsJSON []byte
@@ -540,4 +609,36 @@ func (s *PostgresStore) GetSaleByID(id string) (*SaleResponse, error) {
 	}
 
 	return nil, fmt.Errorf("sale [%s] not found", id)
+}
+
+func scanIntoSalesSortedByMoth(rows *sql.Rows) (*SaleResponseSortedByMonth, error) {
+	sale := new(SaleResponseSortedByMonth)
+	var productVariationsJSON []byte
+	err := rows.Scan(
+		&sale.ID,
+		&sale.CustomerID,
+		&sale.CustomerName,
+		&sale.CustomerInstagramAccount,
+		&sale.CustomerPhone,
+		&sale.CustomerAddress,
+		&sale.CustomerCity,
+		&sale.CustomerDepartment,
+		&sale.CustomerComments,
+		&sale.CustomerCc,
+		&sale.CreatedAt,
+		&sale.UpdatedAt,
+		&productVariationsJSON, // Scan JSON data into a []byte
+		&sale.SaleMonth,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// Unmarshal JSON data into slice
+	err = json.Unmarshal(productVariationsJSON, &sale.ProductVariations)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshaling product_variations JSON: %v", err)
+	}
+
+	return sale, nil
 }

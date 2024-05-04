@@ -44,6 +44,11 @@ type SaleResponse struct {
 	ProductVariations        []ProductVariationsResponse `json:"product_variations"`
 }
 
+type SaleResponseSortedByMonth struct {
+	SaleResponse
+	SaleMonth time.Time `json:"sale_moth"`
+}
+
 func NewSale(
 	customerID string,
 	products []ProductVariations,
