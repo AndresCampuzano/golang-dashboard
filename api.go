@@ -40,6 +40,7 @@ func (server *APIServer) Run() {
 	router.HandleFunc("/sales/{id}", withJWTAuth(makeHTTPHandlerFunc(server.handleSalesWithID), server.store))
 	router.HandleFunc("/expenses", withJWTAuth(makeHTTPHandlerFunc(server.handleExpenses), server.store))
 	router.HandleFunc("/expenses/{id}", withJWTAuth(makeHTTPHandlerFunc(server.handleExpensesWithID), server.store))
+	router.HandleFunc("/earnings", withJWTAuth(makeHTTPHandlerFunc(server.handleEarnings), server.store))
 
 	log.Println("JSON API server running on port: ", server.listenAddr)
 
@@ -185,6 +186,16 @@ func (server *APIServer) handleExpensesWithID(w http.ResponseWriter, r *http.Req
 		return server.handleUpdateExpense(w, r)
 	case http.MethodDelete:
 		return server.handleDeleteExpense(w, r)
+	default:
+		return fmt.Errorf("unsupported method: %s", r.Method)
+	}
+}
+
+// handleEarnings handles get by month
+func (server *APIServer) handleEarnings(w http.ResponseWriter, r *http.Request) error {
+	switch r.Method {
+	case http.MethodGet:
+		return server.handleGetEarnings(w, r)
 	default:
 		return fmt.Errorf("unsupported method: %s", r.Method)
 	}

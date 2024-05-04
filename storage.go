@@ -34,6 +34,8 @@ type Storage interface {
 	GetExpenses() ([]*Expense, error)
 	UpdateExpense(expense *Expense) error
 	DeleteExpense(id string) error
+	// EarningsSummary
+	GetEarnings() ([]*Earnings, error)
 }
 
 type PostgresStore struct {

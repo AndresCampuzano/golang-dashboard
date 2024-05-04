@@ -461,7 +461,7 @@ func (s *PostgresStore) GetSales() ([]*SaleResponse, error) {
 func (s *PostgresStore) GetSalesByMonth() ([]*SaleResponseSortedByMonth, error) {
 	rows, err := s.db.Query(`
 		SELECT
-			DATE_TRUNC('month', s.created_at) AS sale_month,
+			DATE_TRUNC('month', s.created_at) AS sort_by_month,
 			s.id,
 			s.customer_id,
 			s.customer_name,
@@ -486,7 +486,7 @@ func (s *PostgresStore) GetSalesByMonth() ([]*SaleResponseSortedByMonth, error) 
 		JOIN
 			product_variations pv ON sp.product_variation_id = pv.id
 		GROUP BY
-			sale_month,
+			sort_by_month,
 			s.id,
 			s.customer_id,
 			s.customer_name,
@@ -500,7 +500,7 @@ func (s *PostgresStore) GetSalesByMonth() ([]*SaleResponseSortedByMonth, error) 
 			s.created_at,
 			s.updated_at
 		ORDER BY
-			sale_month DESC,
+			sort_by_month DESC,
 			s.created_at DESC;
 	`)
 	if err != nil {
@@ -628,7 +628,7 @@ func scanIntoSalesSortedByMoth(rows *sql.Rows) (*SaleResponseSortedByMonth, erro
 		&sale.CreatedAt,
 		&sale.UpdatedAt,
 		&productVariationsJSON, // Scan JSON data into a []byte
-		&sale.SaleMonth,
+		&sale.SortByMonth,
 	)
 	if err != nil {
 		return nil, err

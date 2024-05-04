@@ -5,7 +5,7 @@ import "time"
 type Expense struct {
 	ID          string    `json:"id"`
 	Name        string    `json:"name"`
-	Price       int       `json:"price"`
+	Price       float64   `json:"price"`
 	Type        string    `json:"type"`
 	Description string    `json:"description"`
 	Currency    string    `json:"currency"`
@@ -14,17 +14,17 @@ type Expense struct {
 }
 
 type CreateExpenseRequest struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Price       int    `json:"price"`
-	Type        string `json:"type"`
-	Description string `json:"description"`
-	Currency    string `json:"currency"`
+	ID          string  `json:"id"`
+	Name        string  `json:"name"`
+	Price       float64 `json:"price"`
+	Type        string  `json:"type"`
+	Description string  `json:"description"`
+	Currency    string  `json:"currency"`
 }
 
 func NewExpense(
 	name string,
-	price int,
+	price float64,
 	exType string,
 	description string,
 	currency string,

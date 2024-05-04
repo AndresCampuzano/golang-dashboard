@@ -12,7 +12,7 @@ func (s *PostgresStore) CreateExpensesTable() error {
         CREATE TABLE IF NOT EXISTS expenses (
             id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
             name VARCHAR(255) NOT NULL,
-            price BIGINT NOT NULL,
+            price DECIMAL(15, 2) NOT NULL,
             type VARCHAR(255) NOT NULL,
             description VARCHAR(255) NOT NULL,
             currency VARCHAR(255) NOT NULL,
@@ -161,6 +161,54 @@ func scanIntoExpenses(rows *sql.Rows) (*Expense, error) {
 
 func (s *PostgresStore) GetExpenses() ([]*Expense, error) {
 	rows, err := s.db.Query("SELECT * FROM expenses")
+	if err != nil {
+		return nil, err
+	}
+
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(rows)
+
+	var expenses []*Expense
+	for rows.Next() {
+		expense, err := scanIntoExpenses(rows)
+		if err != nil {
+			return nil, err
+		}
+
+		expenses = append(expenses, expense)
+	}
+
+	return expenses, nil
+}
+
+func (s *PostgresStore) GetExpensesByMonth() ([]*Expense, error) {
+	rows, err := s.db.Query(`
+		SELECT
+		    DATE_TRUNC('month', e.created_at) AS sort_by_month,
+			e.id,
+			e.name,
+			e.price,
+			e.type,
+			e.description,
+			e.currency
+		FROM
+			expenses e
+		GROUP BY 
+		    sort_by_month,
+		    e.id,
+			e.name,
+			e.price,
+			e.type,
+			e.description,
+			e.currency
+		ORDER BY
+			created_at DESC,
+			e.created_at DESC;
+	`)
 	if err != nil {
 		return nil, err
 	}

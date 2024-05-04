@@ -46,7 +46,7 @@ type SaleResponse struct {
 
 type SaleResponseSortedByMonth struct {
 	SaleResponse
-	SaleMonth time.Time `json:"sale_moth"`
+	SortByMonth time.Time `json:"sort_by_month"`
 }
 
 func NewSale(
