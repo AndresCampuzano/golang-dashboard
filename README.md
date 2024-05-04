@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://cdn-icons-png.flaticon.com/512/6295/6295417.png" width="100" />
+  <img src="https://cdn-icons-png.flaticon.com/512/6295/6295417.png" width="100"  alt="cloud-img"/>
 </p>
 <h1 align="center">GOLANG-DASHBOARD</h1>
 <p align="center">
@@ -8,9 +8,7 @@
 	<img src="https://img.shields.io/github/languages/top/AndresCampuzano/golang-dashboard?style=flat&color=0080ff" alt="repo-top-language">
 	<img src="https://img.shields.io/github/languages/count/AndresCampuzano/golang-dashboard?style=flat&color=0080ff" alt="repo-language-count">
 <p>
-<p align="center">
-		<em>Developed with the software and tools below.</em>
-</p>
+
 <p align="center">
 	<img src="https://img.shields.io/badge/Go-00ADD8.svg?style=flat&logo=Go&logoColor=white" alt="Go">
 </p>
@@ -32,7 +30,10 @@
   * [🚀 Getting Started](#-getting-started)
     * [⚙️ Installation](#-installation)
     * [🤖 Running golang-dashboard](#-running-golang-dashboard)
-    * [🧪 Tests](#-tests)
+    * [⚙️ Configuration](#-configuration)
+      * [PostgreSQL](#postgresql)
+      * [AWS](#aws)
+  * [🧪 Tests](#-tests)
 <!-- TOC -->
 
 ---
@@ -52,14 +53,7 @@ This is a JSON API server written in Go that provides endpoints for managing use
 ### Additional Information
 
 #### Database Storage
-The server uses PostgreSQL as its database backend. It provides a NewPostgresStore function to create a new instance of PostgresStore, which establishes a connection to the PostgreSQL database and initializes necessary extensions.
-
-To use NewPostgresStore, you need to set the following environment variables:
-
-- POSTGRES_USER: PostgreSQL username
-- POSTGRES_DB_NAME: PostgreSQL database name
-- POSTGRES_PASSWORD: PostgreSQL password
-
+The server uses PostgreSQL as its database backend. It provides a `NewPostgresStore` function to create a new instance of `PostgresStore`, which establishes a connection to the PostgreSQL database and initializes necessary extensions.
 
 #### AWS S3 Integration
 The server integrates with AWS S3 for file storage. The BucketBasics struct encapsulates Amazon S3 actions such as uploading and deleting files. It provides methods for uploading base64-encoded images to an S3 bucket and deleting files from the bucket.
@@ -71,7 +65,7 @@ The server includes helper functions for handling JSON responses, HTTP request r
 
 ## 📂 Repository Structure
 
-```sh
+```md
 └── golang-dashboard/
     ├── Makefile
     ├── api.go
@@ -183,10 +177,25 @@ Use the following command to run golang-dashboard:
 make run
 ```
 
-### 🧪 Tests
 
-To execute tests, run:
+### ⚙️ Configuration
 
-```sh
-go test
-```
+This project requires the following environment variables to be set for proper operation:
+
+#### PostgreSQL
+
+- `POSTGRES_USER`: PostgreSQL username
+- `POSTGRES_DB_NAME`: PostgreSQL database name
+- `POSTGRES_PASSWORD`: PostgreSQL password
+
+#### AWS
+
+- `AWS_ACCESS_KEY_ID`: AWS access key ID for accessing AWS services
+- `AWS_SECRET_ACCESS_KEY`: AWS secret access key for accessing AWS services
+- `AWS_REGION`: AWS region where resources are located
+- `AWS_S3_BUCKET_NAME`: Name of the AWS S3 bucket for file storage
+- `AWS_S3_BUCKET_URL`: URL of the AWS S3 bucket for accessing stored files
+
+## 🧪 Tests
+
+Embrace the chaos, this is a work in progress!
