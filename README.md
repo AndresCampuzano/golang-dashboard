@@ -14,10 +14,7 @@
 </p>
 <hr>
 
-## 🔗 Quick Links
-
 <!-- TOC -->
-  * [🔗 Quick Links](#-quick-links)
   * [📍 Overview](#-overview)
   * [📦 Features](#-features)
     * [Additional Information](#additional-information)
