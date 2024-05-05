@@ -74,6 +74,9 @@ The server includes helper functions for handling JSON responses, HTTP request r
     ├── expense.service.go
     ├── expense.storage.go
     ├── expense.types.go
+    ├── earnings.service.go
+    ├── earnings.storage.go
+    ├── earnings.types.go
     ├── go.mod
     ├── go.sum
     ├── main.go
@@ -122,6 +125,7 @@ The server exposes the following endpoints:
 - `POST /expenses`: Create a new expense
 - `PUT /expenses/{id}`: Update expense by ID
 - `DELETE /expenses/{id}`: Delete expense by ID
+- `GET /earnings`: Get earnings by month calculated from multiple postgres tables
 
 ---
 

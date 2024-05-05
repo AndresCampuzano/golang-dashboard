@@ -27,7 +27,7 @@ type Storage interface {
 	CreateSale(sale *SaleWithProducts) error
 	GetSaleByID(id string) (*SaleResponse, error)
 	GetSales() ([]*SaleResponse, error)
-	GetSalesByMonth() ([]*SaleResponseSortedByMonth, error)
+	GetSalesByMonth() ([]*SaleResponseSortedByMonth, error) // Not in used yet
 	// Expenses
 	CreateExpense(expense *Expense) error
 	GetExpenseByID(id string) (*Expense, error)
