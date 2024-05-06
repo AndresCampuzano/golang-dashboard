@@ -27,8 +27,9 @@ func (server *APIServer) handleLoginUser(w http.ResponseWriter, r *http.Request)
 	}
 
 	resp := LoginResponse{
-		Email: acc.Email,
-		Token: token,
+		Email:     acc.Email,
+		Token:     token,
+		FirstName: acc.FirstName,
 	}
 
 	return WriteJSON(w, http.StatusOK, resp)

@@ -407,12 +407,15 @@ func (s *PostgresStore) GetSales() ([]*SaleResponse, error) {
 			s.customer_department,
 			s.customer_comments,
 			s.customer_cc,
+			COUNT(*) OVER (PARTITION BY s.customer_id) AS customer_total_purchases,
 			s.created_at,
 			s.updated_at,
 			JSON_AGG(JSON_BUILD_OBJECT(
 				'id', pv.id,
 				'color', pv.color,
-				'price', pv.price
+				'price', pv.price,
+				'image', p.image,
+				'name', p.name
 			)) AS product_variations
 		FROM
 			sales s
@@ -420,6 +423,8 @@ func (s *PostgresStore) GetSales() ([]*SaleResponse, error) {
 			sale_products sp ON s.id = sp.sale_id
 		JOIN
 			product_variations pv ON sp.product_variation_id = pv.id
+		JOIN
+			products p ON pv.product_id = p.id
 		GROUP BY
 			s.id,
 			s.customer_id,
@@ -472,12 +477,15 @@ func (s *PostgresStore) GetSalesByMonth() ([]*SaleResponseSortedByMonth, error) 
 			s.customer_department,
 			s.customer_comments,
 			s.customer_cc,
+			COUNT(*) OVER (PARTITION BY s.customer_id) AS customer_total_purchases,
 			s.created_at,
 			s.updated_at,
 			JSON_AGG(JSON_BUILD_OBJECT(
 				'id', pv.id,
 				'color', pv.color,
-				'price', pv.price
+				'price', pv.price,
+				'image', p.image,
+				'name', p.name
 			)) AS product_variations
 		FROM
 			sales s
@@ -485,6 +493,8 @@ func (s *PostgresStore) GetSalesByMonth() ([]*SaleResponseSortedByMonth, error) 
 			sale_products sp ON s.id = sp.sale_id
 		JOIN
 			product_variations pv ON sp.product_variation_id = pv.id
+		JOIN
+			products p ON pv.product_id = p.id
 		GROUP BY
 			sort_by_month,
 			s.id,
@@ -541,6 +551,7 @@ func scanIntoSales(rows *sql.Rows) (*SaleResponse, error) {
 		&sale.CustomerDepartment,
 		&sale.CustomerComments,
 		&sale.CustomerCc,
+		&sale.CustomerTotalPurchases,
 		&sale.CreatedAt,
 		&sale.UpdatedAt,
 		&productVariationsJSON, // Scan JSON data into a []byte
@@ -571,12 +582,15 @@ func (s *PostgresStore) GetSaleByID(id string) (*SaleResponse, error) {
 			s.customer_department,
 			s.customer_comments,
 			s.customer_cc,
+		    COUNT(*) OVER (PARTITION BY s.customer_id) AS customer_total_purchases,
 			s.created_at,
 			s.updated_at,
 			JSON_AGG(JSON_BUILD_OBJECT(
 				'id', pv.id,
 				'color', pv.color,
-				'price', pv.price
+				'price', pv.price,
+				'image', p.image,
+				'name', p.name
 			)) AS product_variations
 		FROM
 			sales s
@@ -584,6 +598,8 @@ func (s *PostgresStore) GetSaleByID(id string) (*SaleResponse, error) {
 			sale_products sp ON s.id = sp.sale_id
 		JOIN
 			product_variations pv ON sp.product_variation_id = pv.id
+		JOIN
+			products p ON pv.product_id = p.id
 		WHERE
 			s.id = $1
 		GROUP BY
@@ -625,6 +641,7 @@ func scanIntoSalesSortedByMoth(rows *sql.Rows) (*SaleResponseSortedByMonth, erro
 		&sale.CustomerDepartment,
 		&sale.CustomerComments,
 		&sale.CustomerCc,
+		&sale.CustomerTotalPurchases,
 		&sale.CreatedAt,
 		&sale.UpdatedAt,
 		&productVariationsJSON, // Scan JSON data into a []byte

@@ -50,6 +50,15 @@ func (s *PostgresStore) GetEarnings() ([]*Earnings, error) {
 				e.currency = 'COP'
 			GROUP BY
 				month
+		),
+		sales_count AS (
+			SELECT
+				DATE_TRUNC('month', s.created_at) AS month,
+				COUNT(*) AS total_sales_in_month
+			FROM
+				sales s
+			GROUP BY
+				DATE_TRUNC('month', s.created_at)
 		)
 		SELECT
 			me.month AS sort_by_month,
@@ -72,7 +81,8 @@ func (s *PostgresStore) GetEarnings() ([]*Earnings, error) {
 			) AS all_expenses_in_month,
 			COALESCE(mi.total_income, 0) AS income,
 			COALESCE(ce.total_cop_expense, 0) AS cop_expense,
-			COALESCE(mi.total_income, 0) - COALESCE(ce.total_cop_expense, 0) AS earnings
+			COALESCE(mi.total_income, 0) - COALESCE(ce.total_cop_expense, 0) AS earnings,
+			COALESCE(sc.total_sales_in_month, 0) AS total_sales_in_month
 		FROM
 			monthly_expenses me
 		LEFT JOIN
@@ -81,8 +91,10 @@ func (s *PostgresStore) GetEarnings() ([]*Earnings, error) {
 			monthly_income mi ON me.month = mi.month
 		LEFT JOIN
 			cop_expenses ce ON me.month = ce.month
+		LEFT JOIN
+			sales_count sc ON me.month = sc.month
 		GROUP BY
-			me.month, mi.total_income, ce.total_cop_expense;
+			me.month, mi.total_income, ce.total_cop_expense, sc.total_sales_in_month
 	`)
 	if err != nil {
 		return nil, err
@@ -119,6 +131,7 @@ func scanIntoEarnings(rows *sql.Rows) (*Earnings, error) {
 		&earning.Income,
 		&earning.CopExpense,
 		&earning.Earnings,
+		&earning.TotalSalesInMonth,
 	)
 	if err != nil {
 		return nil, err

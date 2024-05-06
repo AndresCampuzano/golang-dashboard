@@ -7,15 +7,13 @@ import (
 )
 
 func NewPostgresStore() (*PostgresStore, error) {
-	// Retrieve environment variables
-	user := os.Getenv("POSTGRES_USER")
-	dbName := os.Getenv("POSTGRES_DB_NAME")
-	password := os.Getenv("POSTGRES_PASSWORD")
+	user := os.Getenv("AMAZON_RDS_USER")
+	password := os.Getenv("AMAZON_RDS_PASSWORD")
+	dbname := os.Getenv("AMAZON_RDS_DB_NAME")
+	endpoint := os.Getenv("AMAZON_RDS_ENDPOINT")
 
-	// Construct connection string
-	connStr := fmt.Sprintf("user=%s dbname=%s password=%s sslmode=disable", user, dbName, password)
+	connStr := fmt.Sprintf("user=%s password=%s dbname=%s host=%s sslmode=require", user, password, dbname, endpoint)
 
-	// Open database connection
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return nil, err

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 	"log"
 	"net/http"
 )
@@ -13,41 +14,55 @@ type APIServer struct {
 	listenAddr string
 	store      Storage
 	s3Client   *s3.Client
+	Router     *mux.Router
 }
 
 // NewAPIServer creates a new instance of APIServer.
 func NewAPIServer(listenAddr string, store Storage, s3 *s3.Client) *APIServer {
-	return &APIServer{
+	router := mux.NewRouter()
+
+	server := &APIServer{
 		listenAddr: listenAddr,
 		store:      store,
 		s3Client:   s3,
+		Router:     router,
 	}
+
+	router.HandleFunc("/api/login", makeHTTPHandlerFunc(server.handleLogin))
+	router.HandleFunc("/api/signup", makeHTTPHandlerFunc(server.HandleSignUp))
+	router.HandleFunc("/api/users", withJWTAuth(makeHTTPHandlerFunc(server.handleUsers), server.store))
+	router.HandleFunc("/api/users/{id}", withJWTAuth(makeHTTPHandlerFunc(server.handleUsersWithID), server.store))
+	router.HandleFunc("/api/customers", withJWTAuth(makeHTTPHandlerFunc(server.handleCustomers), server.store))
+	router.HandleFunc("/api/customers/{id}", withJWTAuth(makeHTTPHandlerFunc(server.handleCustomersWithID), server.store))
+	router.HandleFunc("/api/products", withJWTAuth(makeHTTPHandlerFunc(server.handleProducts), server.store))
+	router.HandleFunc("/api/products/{id}", withJWTAuth(makeHTTPHandlerFunc(server.handleProductsWithID), server.store))
+	router.HandleFunc("/api/sales", withJWTAuth(makeHTTPHandlerFunc(server.handleSales), server.store))
+	router.HandleFunc("/api/sales/{id}", withJWTAuth(makeHTTPHandlerFunc(server.handleSalesWithID), server.store))
+	router.HandleFunc("/api/expenses", withJWTAuth(makeHTTPHandlerFunc(server.handleExpenses), server.store))
+	router.HandleFunc("/api/expenses/{id}", withJWTAuth(makeHTTPHandlerFunc(server.handleExpensesWithID), server.store))
+	router.HandleFunc("/api/earnings", withJWTAuth(makeHTTPHandlerFunc(server.handleEarnings), server.store))
+
+	return server
 }
 
 // Run starts the API server and listens for incoming requests.
 func (server *APIServer) Run() {
-	router := mux.NewRouter()
-
-	router.HandleFunc("/login", makeHTTPHandlerFunc(server.handleLogin))
-	router.HandleFunc("/signup", makeHTTPHandlerFunc(server.HandleSignUp))
-	router.HandleFunc("/users", withJWTAuth(makeHTTPHandlerFunc(server.handleUsers), server.store))
-	router.HandleFunc("/users/{id}", withJWTAuth(makeHTTPHandlerFunc(server.handleUsersWithID), server.store))
-	router.HandleFunc("/customers", withJWTAuth(makeHTTPHandlerFunc(server.handleCustomers), server.store))
-	router.HandleFunc("/customers/{id}", withJWTAuth(makeHTTPHandlerFunc(server.handleCustomersWithID), server.store))
-	router.HandleFunc("/products", withJWTAuth(makeHTTPHandlerFunc(server.handleProducts), server.store))
-	router.HandleFunc("/products/{id}", withJWTAuth(makeHTTPHandlerFunc(server.handleProductsWithID), server.store))
-	router.HandleFunc("/sales", withJWTAuth(makeHTTPHandlerFunc(server.handleSales), server.store))
-	router.HandleFunc("/sales/{id}", withJWTAuth(makeHTTPHandlerFunc(server.handleSalesWithID), server.store))
-	router.HandleFunc("/expenses", withJWTAuth(makeHTTPHandlerFunc(server.handleExpenses), server.store))
-	router.HandleFunc("/expenses/{id}", withJWTAuth(makeHTTPHandlerFunc(server.handleExpensesWithID), server.store))
-	router.HandleFunc("/earnings", withJWTAuth(makeHTTPHandlerFunc(server.handleEarnings), server.store))
-
 	log.Println("JSON API server running on port: ", server.listenAddr)
 
-	err := http.ListenAndServe(server.listenAddr, router)
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowCredentials: true,
+		AllowedHeaders:   []string{"Authorization", "Content-Type"},
+		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete},
+		Debug:            true,
+	})
+
+	handler := c.Handler(server.Router)
+
+	// Use the CORS-wrapped handler as your HTTP server's handler
+	err := http.ListenAndServe(server.listenAddr, handler)
 	if err != nil {
 		log.Fatal(err)
-		return
 	}
 }
 

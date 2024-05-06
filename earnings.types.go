@@ -20,7 +20,8 @@ type Earnings struct {
 		CreatedAt   string  `json:"created_at"` // FIXME: fix this
 		UpdatedAt   string  `json:"updated_at"` // FIXME: fix this
 	} `json:"all_expenses_in_month"`
-	Income     float64 `json:"income"`
-	CopExpense float64 `json:"cop_expense"`
-	Earnings   float64 `json:"earnings"`
+	Income            float64 `json:"income"`
+	CopExpense        float64 `json:"cop_expense"`
+	Earnings          float64 `json:"earnings"`
+	TotalSalesInMonth int     `json:"total_sales_in_month"`
 }

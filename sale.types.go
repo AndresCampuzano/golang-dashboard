@@ -26,6 +26,8 @@ type ProductVariationsResponse struct {
 	ID    string `json:"id"`
 	Color string `json:"color"`
 	Price int    `json:"price"`
+	Image string `json:"image"`
+	Name  string `json:"name"`
 }
 
 type SaleResponse struct {
@@ -39,6 +41,7 @@ type SaleResponse struct {
 	CustomerDepartment       string                      `json:"customer_department"`
 	CustomerComments         string                      `json:"customer_comments"`
 	CustomerCc               string                      `json:"customer_cc"`
+	CustomerTotalPurchases   int                         `json:"customer_total_purchases"`
 	CreatedAt                time.Time                   `json:"created_at"`
 	UpdatedAt                time.Time                   `json:"updated_at"`
 	ProductVariations        []ProductVariationsResponse `json:"product_variations"`
