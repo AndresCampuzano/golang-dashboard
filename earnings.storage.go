@@ -8,8 +8,11 @@ import (
 )
 
 func (s *PostgresStore) GetEarnings() ([]*Earnings, error) {
-	rows, err := s.db.Query(`WITH monthly_expenses AS (
-		SELECT
+	rows, err := s.db.Query(`
+
+
+	WITH monthly_expenses AS (
+		SELECT DISTINCT
 			DATE_TRUNC('month', e.created_at) AS month,
 			e.currency,
 			SUM(e.price) AS total_expense
@@ -17,84 +20,102 @@ func (s *PostgresStore) GetEarnings() ([]*Earnings, error) {
 			expenses e
 		GROUP BY
 			month, e.currency
-		),
-		all_expenses_in_month AS (
-			SELECT
-				e.id,
-				e.name,
-				e.price,
-				e.type,
-				e.description,
-				e.currency,
-				e.created_at,
-				e.updated_at
-			FROM
-				expenses e
-		),
-		monthly_income AS (
-			SELECT
-				DATE_TRUNC('month', pv.created_at) AS month,
-				SUM(pv.price) AS total_income
-			FROM
-				product_variations pv
-			GROUP BY
-				month
-		),
-		cop_expenses AS (
-			SELECT
-				DATE_TRUNC('month', e.created_at) AS month,
-				SUM(e.price) AS total_cop_expense
-			FROM
-				expenses e
-			WHERE
-				e.currency = 'COP'
-			GROUP BY
-				month
-		),
-		sales_count AS (
-			SELECT
-				DATE_TRUNC('month', s.created_at) AS month,
-				COUNT(*) AS total_sales_in_month
-			FROM
-				sales s
-			GROUP BY
-				DATE_TRUNC('month', s.created_at)
-		)
-		SELECT
-			me.month AS sort_by_month,
-			(SELECT json_agg(expenses_summary)
-			 FROM (SELECT DISTINCT ON (currency) jsonb_build_object('currency', currency, 'value', total_expense) AS expenses_summary
-				   FROM monthly_expenses
-				   WHERE month = me.month
-				   ORDER BY currency) AS distinct_expenses) AS expenses_summary,
-			json_agg(
-				jsonb_build_object(
-					'id', aem.id,
-					'name', aem.name,
-					'price', aem.price,
-					'type', aem.type,
-					'description', aem.description,
-					'currency', aem.currency,
-					'created_at', aem.created_at,
-					'updated_at', aem.updated_at
-				)
-			) AS all_expenses_in_month,
-			COALESCE(mi.total_income, 0) AS income,
-			COALESCE(ce.total_cop_expense, 0) AS cop_expense,
-			COALESCE(mi.total_income, 0) - COALESCE(ce.total_cop_expense, 0) AS earnings,
-			COALESCE(sc.total_sales_in_month, 0) AS total_sales_in_month
+	),
+	all_expenses_in_month AS (
+		SELECT DISTINCT
+			e.id,
+			e.name,
+			e.price,
+			e.type,
+			e.description,
+			e.currency,
+			e.created_at,
+			e.updated_at
 		FROM
-			monthly_expenses me
-		LEFT JOIN
-			all_expenses_in_month aem ON DATE_TRUNC('month', aem.created_at) = me.month
-		LEFT JOIN
-			monthly_income mi ON me.month = mi.month
-		LEFT JOIN
-			cop_expenses ce ON me.month = ce.month
-		LEFT JOIN
-			sales_count sc ON me.month = sc.month
+			expenses e
+	),
+	monthly_income AS (
+		SELECT DISTINCT
+			DATE_TRUNC('month', pv.created_at) AS month,
+			SUM(pv.price) AS total_income
+		FROM
+			product_variations pv
 		GROUP BY
-			me.month, mi.total_income, ce.total_cop_expense, sc.total_sales_in_month
+			month
+	),
+	cop_expenses AS (
+		SELECT DISTINCT
+			DATE_TRUNC('month', e.created_at) AS month,
+			SUM(CASE WHEN e.currency = 'COP' THEN e.price ELSE 0 END) AS total_cop_expense
+		FROM
+			expenses e
+		GROUP BY
+			month
+	),
+	sales_count AS (
+		SELECT DISTINCT
+			DATE_TRUNC('month', s.created_at) AS month,
+			COUNT(*) AS total_sales_in_month
+		FROM
+			sales s
+		GROUP BY
+			DATE_TRUNC('month', s.created_at)
+	),
+	-- Generate a distinct list of months from all sources
+	distinct_months AS (
+		SELECT DISTINCT month FROM (
+			SELECT month FROM monthly_expenses
+			UNION
+			SELECT month FROM monthly_income
+			UNION
+			SELECT month FROM cop_expenses
+			UNION
+			SELECT month FROM sales_count
+		) AS all_months
+	)
+	SELECT
+		dm.month AS sort_by_month,
+		CASE
+			WHEN me.month IS NULL THEN '[]'
+			ELSE json_agg(
+				jsonb_build_object(
+					'currency', me.currency,
+					'value', me.total_expense
+				)
+			)
+		END AS expenses_summary,
+		json_agg(
+			jsonb_build_object(
+				'id', aem.id,
+				'name', aem.name,
+				'price', aem.price,
+				'type', aem.type,
+				'description', aem.description,
+				'currency', aem.currency,
+				'created_at', aem.created_at,
+				'updated_at', aem.updated_at
+			)
+		) AS all_expenses_in_month,
+		COALESCE(mi.total_income, 0) AS income,
+		COALESCE(ce.total_cop_expense, 0) AS cop_expense,
+		COALESCE(mi.total_income, 0) - COALESCE(ce.total_cop_expense, 0) AS earnings,
+		COALESCE(sc.total_sales_in_month, 0) AS total_sales_in_month
+	FROM
+		distinct_months dm
+	LEFT JOIN
+		monthly_expenses me ON dm.month = me.month
+	LEFT JOIN
+		all_expenses_in_month aem ON DATE_TRUNC('month', aem.created_at) = dm.month
+	LEFT JOIN
+		monthly_income mi ON dm.month = mi.month
+	LEFT JOIN
+		cop_expenses ce ON dm.month = ce.month
+	LEFT JOIN
+		sales_count sc ON dm.month = sc.month
+	GROUP BY
+		dm.month, me.month, mi.total_income, ce.total_cop_expense, sc.total_sales_in_month;
+
+
 	`)
 	if err != nil {
 		return nil, err
