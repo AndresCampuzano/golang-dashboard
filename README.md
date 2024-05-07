@@ -30,6 +30,8 @@
     * [⚙️ Configuration](#-configuration)
       * [PostgreSQL](#postgresql)
       * [AWS](#aws)
+      * [Amazon RDS](#amazon-rds)
+      * [JWT](#jwt)
   * [🧪 Tests](#-tests)
 <!-- TOC -->
 
@@ -199,6 +201,17 @@ This project requires the following environment variables to be set for proper o
 - `AWS_REGION`: AWS region where resources are located
 - `AWS_S3_BUCKET_NAME`: Name of the AWS S3 bucket for file storage
 - `AWS_S3_BUCKET_URL`: URL of the AWS S3 bucket for accessing stored files
+
+#### Amazon RDS
+
+- `AMAZON_RDS_USER`: Username for Amazon RDS database
+- `AMAZON_RDS_DB_NAME`: Name of the Amazon RDS database
+- `AMAZON_RDS_PASSWORD`: Password for Amazon RDS database
+- `AMAZON_RDS_ENDPOINT`: Endpoint for connecting to Amazon RDS database
+
+#### JWT
+
+- `JWT_SECRET`: Secret key for JWT token generation
 
 ## 🧪 Tests
 
