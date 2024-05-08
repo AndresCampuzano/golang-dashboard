@@ -105,7 +105,9 @@ func (s *PostgresStore) GetEarnings() ([]*Earnings, error) {
 		) AS all_expenses_in_month,
 		COALESCE(mi.total_income, 0) AS income,
 		COALESCE(ce.total_cop_expense, 0) AS cop_expense,
-		COALESCE(mi.total_income, 0) - COALESCE(ce.total_cop_expense, 0) AS earnings,
+		CASE WHEN COALESCE(mi.total_income, 0) - COALESCE(ce.total_cop_expense, 0) < 0 THEN 0
+		 ELSE COALESCE(mi.total_income, 0) - COALESCE(ce.total_cop_expense, 0)
+		END AS earnings,
 		COALESCE(sc.total_sales_in_month, 0) AS total_sales_in_month
 	FROM
 		distinct_months dm
