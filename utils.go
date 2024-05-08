@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -81,4 +82,141 @@ func ConvertFromDBArray(dbArray string) []string {
 	}
 	// Split the input string by commas to extract individual elements
 	return strings.Split(dbArray, ",")
+}
+
+func colorFromLocalConstants(color string) struct {
+	bgColor   string
+	textColor string
+} {
+	// Implement color lookup logic here
+	// Return background color and text color based on the provided color
+	return struct {
+		bgColor   string
+		textColor string
+	}{"#ffffff", "#000000"}
+}
+
+func currencyFormat(price string) string {
+	// Implement currency formatting logic here
+	return price
+}
+
+func findProductVariation(products []*Product, pID string) *Product {
+	for _, x := range products {
+		if x.ID == pID {
+			return x
+		}
+	}
+	return nil
+}
+
+// formatCurrency formats an integer value as a currency string.
+// Examples:
+//
+//	formattedValue := formatCurrency(45000, "COP")
+//	// Output: COP 45,000
+//	formattedValue := formatCurrency(120000, "COP")
+//	// Output: COP 120,000
+//	formattedValue := formatCurrency(60000, "COP")
+//	// Output: COP 60,000
+func formatCurrency(value int, currency string) string {
+	// Convert int to string
+	valueStr := strconv.Itoa(value)
+
+	// Split value string into integer and decimal parts
+	parts := strings.Split(valueStr, ".")
+
+	// Format integer part with commas for thousands
+	integerPart := parts[0]
+	var formattedInteger string
+	for i := len(integerPart); i > 0; i -= 3 {
+		start := i - 3
+		if start < 0 {
+			start = 0
+		}
+		formattedInteger = integerPart[start:i] + formattedInteger
+		if start != 0 {
+			formattedInteger = "," + formattedInteger
+		}
+	}
+
+	// Construct formatted currency string
+	formattedValue := currency + " " + formattedInteger
+	if len(parts) > 1 {
+		formattedValue += "." + parts[1]
+	}
+
+	return formattedValue
+}
+
+// Color represents a color option
+type Color struct {
+	Label     string
+	Color     string
+	TextColor string
+}
+
+// Colors contains available color options
+var Colors = []Color{
+	{
+		Label: "Rojo",
+		Color: "#a42222",
+	},
+	{
+		Label:     "Azul",
+		Color:     "#0cadde",
+		TextColor: "#070707",
+	},
+	{
+		Label: "Verde",
+		Color: "#1b8c1b",
+	},
+	{
+		Label:     "Amarillo",
+		Color:     "#e0e010",
+		TextColor: "#070707",
+	},
+	{
+		Label: "Morado",
+		Color: "#b622b6",
+	},
+	{
+		Label:     "Blanco",
+		Color:     "#ffffff",
+		TextColor: "#000000",
+	},
+	{
+		Label: "Cafe",
+		Color: "#52302a",
+	},
+	{
+		Label:     "Naranja",
+		Color:     "#e07c10",
+		TextColor: "#070707",
+	},
+	{
+		Label: "Rosado",
+		Color: "#d272d5",
+	},
+	{
+		Label:     "Negro",
+		Color:     "#070707",
+		TextColor: "#fafafa",
+	},
+	{
+		Label:     "Otro",
+		Color:     "#a6a6a6",
+		TextColor: "#232323",
+	},
+}
+
+// ColorFromLocalConstants retrieves the color from the constants based on the label
+func ColorFromLocalConstants(label string) (string, string) {
+	for _, color := range Colors {
+		if color.Label == label {
+			return color.Color, color.TextColor
+		}
+	}
+	// Default values
+	return "#000000", "#ffffff"
 }

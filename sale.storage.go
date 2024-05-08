@@ -213,6 +213,20 @@ func (s *PostgresStore) CreateSale(sale *SaleWithProducts) error {
 		return err
 	}
 
+	// Asynchronously send email
+	go func() {
+		users, err := s.GetUsers()
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
+
+		if err := SendSaleEmail(sale, s, customer, users); err != nil {
+			log.Fatal(err)
+			return
+		}
+	}()
+
 	// Set the ID of the inserted sale (sales table)
 	sale.ID = saleID
 

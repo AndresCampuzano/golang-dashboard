@@ -33,4 +33,6 @@ require (
 	github.com/felixge/httpsnoop v1.0.3 // indirect
 	github.com/gorilla/handlers v1.5.2 // indirect
 	github.com/rs/cors v1.11.0 // indirect
+	github.com/sendgrid/rest v2.6.9+incompatible // indirect
+	github.com/sendgrid/sendgrid-go v3.14.0+incompatible // indirect
 )

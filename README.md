@@ -32,6 +32,7 @@
       * [AWS](#aws)
       * [Amazon RDS](#amazon-rds)
       * [JWT](#jwt)
+      * [SendGrid Emails](#sendgrid-emails)
   * [🧪 Tests](#-tests)
 <!-- TOC -->
 
@@ -142,6 +143,8 @@ This project depends on the following external packages:
 - [github.com/joho/godotenv](https://github.com/joho/godotenv) - Go port of Ruby's dotenv library for loading environment variables from .env files
 - [github.com/lib/pq](https://github.com/lib/pq) - PostgreSQL driver for Go's database/sql package
 - [golang.org/x/crypto](https://pkg.go.dev/golang.org/x/crypto) - Supplementary cryptography libraries for Go
+- [github.com/sendgrid/sendgrid-go](https://github.com/sendgrid/sendgrid-go) - SendGrid email service
+- [github.com/sendgrid/rest](https://github.com/sendgrid/rest) - SendGrid email service
 
 ---
 
@@ -212,6 +215,12 @@ This project requires the following environment variables to be set for proper o
 #### JWT
 
 - `JWT_SECRET`: Secret key for JWT token generation
+
+#### SendGrid Emails
+
+- `SENDGRID_API_KEY`: SendGrid API Key
+- `SENDGRID_CUSTOM_SENDER`: Custom email sender
+
 
 ## 🧪 Tests
 
