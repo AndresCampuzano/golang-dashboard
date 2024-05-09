@@ -100,6 +100,23 @@ func (s *PostgresStore) GetEarnings() ([]*Earnings, error) {
 											UNION
 											SELECT month FROM sales_count
 										) AS all_months
+		 ),
+	-- Aggregate purchased products for each month
+		 purchased_products AS (
+			 SELECT
+				 DATE_TRUNC('month', pv.created_at) AS month,
+				 p.name AS name,
+				 p.id,
+				 pv.color,
+				 pv.price,
+				 p.image,
+				 COUNT(*) AS quantity
+			 FROM
+				 product_variations pv
+					 JOIN
+				 products p ON pv.product_id = p.id
+			 GROUP BY
+				 DATE_TRUNC('month', pv.created_at), p.name, pv.color, pv.price, p.image, p.id
 		 )
 	SELECT
 		dm.month AS sort_by_month,
@@ -148,7 +165,19 @@ func (s *PostgresStore) GetEarnings() ([]*Earnings, error) {
 			SELECT JSON_AGG(jsonb_build_object('name', department, 'sales', sales))
 			FROM total_sales_by_department
 			WHERE DATE_TRUNC('month', total_sales_by_department.month) = dm.month
-		) AS departments
+		) AS departments,
+		(
+			SELECT JSON_AGG(jsonb_build_object(
+					'name', pp.name,
+					'id', pp.id,
+					'color', pp.color,
+					'price', pp.price,
+					'image', pp.image,
+					'quantity', pp.quantity
+							))
+			FROM purchased_products pp
+			WHERE DATE_TRUNC('month', pp.month) = dm.month
+		) AS purchased_products
 	FROM
 		distinct_months dm
 			LEFT JOIN
@@ -194,6 +223,7 @@ func scanIntoEarnings(rows *sql.Rows) (*Earnings, error) {
 	var allExpensesInMonthJSON []byte
 	var citiesJSON []byte
 	var departmentsJSON []byte
+	var purchasedProductsJSON []byte
 	err := rows.Scan(
 		&earning.SortByMonth,
 		&expensesSummaryJSON,
@@ -205,6 +235,7 @@ func scanIntoEarnings(rows *sql.Rows) (*Earnings, error) {
 		&earning.TotalProductVariationsInMonth,
 		&citiesJSON,
 		&departmentsJSON,
+		&purchasedProductsJSON,
 	)
 	if err != nil {
 		return nil, err
@@ -228,6 +259,11 @@ func scanIntoEarnings(rows *sql.Rows) (*Earnings, error) {
 	err = json.Unmarshal(departmentsJSON, &earning.Departments)
 	if err != nil {
 		return nil, fmt.Errorf("error unmarshaling departmentsJSON JSON: %v", err)
+	}
+
+	err = json.Unmarshal(purchasedProductsJSON, &earning.PurchasedProducts)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshaling purchasedProductsJSON JSON: %v", err)
 	}
 
 	return earning, nil
