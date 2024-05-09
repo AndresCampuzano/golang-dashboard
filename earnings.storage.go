@@ -60,6 +60,15 @@ func (s *PostgresStore) GetEarnings() ([]*Earnings, error) {
 		GROUP BY
 			DATE_TRUNC('month', s.created_at)
 	),
+	total_product_variations AS (
+	SELECT
+		DATE_TRUNC('month', pv.created_at) AS month,
+		COUNT(*) AS total_variations
+	FROM
+		product_variations pv
+	GROUP BY
+		DATE_TRUNC('month', pv.created_at)
+     ),
 	-- Generate a distinct list of months from all sources
 	distinct_months AS (
 		SELECT DISTINCT month FROM (
@@ -108,7 +117,8 @@ func (s *PostgresStore) GetEarnings() ([]*Earnings, error) {
 		CASE WHEN COALESCE(mi.total_income, 0) - COALESCE(ce.total_cop_expense, 0) < 0 THEN 0
 		 ELSE COALESCE(mi.total_income, 0) - COALESCE(ce.total_cop_expense, 0)
 		END AS earnings,
-		COALESCE(sc.total_sales_in_month, 0) AS total_sales_in_month
+		COALESCE(sc.total_sales_in_month, 0) AS total_sales_in_month,
+		COALESCE(tpv.total_variations, 0) AS total_product_variations_in_month
 	FROM
 		distinct_months dm
 	LEFT JOIN
@@ -117,6 +127,8 @@ func (s *PostgresStore) GetEarnings() ([]*Earnings, error) {
 		cop_expenses ce ON dm.month = ce.month
 	LEFT JOIN
 		sales_count sc ON dm.month = sc.month
+	LEFT JOIN
+		total_product_variations tpv ON dm.month = tpv.month
 	ORDER BY
 		dm.month;
 
@@ -157,6 +169,7 @@ func scanIntoEarnings(rows *sql.Rows) (*Earnings, error) {
 		&earning.CopExpense,
 		&earning.Earnings,
 		&earning.TotalSalesInMonth,
+		&earning.TotalProductVariationsInMonth,
 	)
 	if err != nil {
 		return nil, err
