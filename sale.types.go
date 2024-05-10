@@ -42,9 +42,12 @@ type SaleResponse struct {
 	CustomerComments         string                      `json:"customer_comments"`
 	CustomerCc               string                      `json:"customer_cc"`
 	CustomerTotalPurchases   int                         `json:"customer_total_purchases"`
-	CreatedAt                time.Time                   `json:"created_at"`
-	UpdatedAt                time.Time                   `json:"updated_at"`
+	CreatedAt                string                      `json:"created_at"`
+	UpdatedAt                string                      `json:"updated_at"`
 	ProductVariations        []ProductVariationsResponse `json:"product_variations"`
+	OtherSales               []SaleResponse              `json:"other_sales"`
+	// OtherSales: it returns null inside nested data,
+	// so it could be an empty slice, with data or 'null' after parsing it
 }
 
 type SaleResponseSortedByMonth struct {

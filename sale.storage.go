@@ -430,7 +430,39 @@ func (s *PostgresStore) GetSales() ([]*SaleResponse, error) {
 				'price', pv.price,
 				'image', p.image,
 				'name', p.name
-			)) AS product_variations
+				 )) AS product_variations,
+			COALESCE((
+						 SELECT JSON_AGG(JSON_BUILD_OBJECT(
+								 'id', so.id,
+								 'customer_id', so.customer_id,
+								 'customer_name', so.customer_name,
+								 'customer_instagram_account', so.customer_instagram_account,
+								 'customer_phone', so.customer_phone,
+								 'customer_address', so.customer_address,
+								 'customer_city', so.customer_city,
+								 'customer_department', so.customer_department,
+								 'customer_comments', so.customer_comments,
+								 'customer_cc', so.customer_cc,
+								 'created_at', so.created_at,
+								 'updated_at', so.updated_at,
+								 'product_variations', (
+									 SELECT JSON_AGG(JSON_BUILD_OBJECT(
+											 'id', pv.id,
+											 'color', pv.color,
+											 'price', pv.price,
+											 'image', p.image,
+											 'name', p.name
+													 ))
+									 FROM sales s_inner
+											  JOIN sale_products sp_inner ON s_inner.id = sp_inner.sale_id
+											  JOIN product_variations pv ON sp_inner.product_variation_id = pv.id
+											  JOIN products p ON pv.product_id = p.id
+									 WHERE s_inner.id = so.id
+								 )
+										 ))
+						 FROM sales so
+						 WHERE so.customer_id = s.customer_id AND so.id != s.id
+					 ), '[]'::json) AS other_sales
 		FROM
 			sales s
 		JOIN
@@ -554,6 +586,7 @@ func (s *PostgresStore) GetSalesByMonth() ([]*SaleResponseSortedByMonth, error) 
 func scanIntoSales(rows *sql.Rows) (*SaleResponse, error) {
 	sale := new(SaleResponse)
 	var productVariationsJSON []byte
+	var otherSalesJSON []byte
 	err := rows.Scan(
 		&sale.ID,
 		&sale.CustomerID,
@@ -569,6 +602,7 @@ func scanIntoSales(rows *sql.Rows) (*SaleResponse, error) {
 		&sale.CreatedAt,
 		&sale.UpdatedAt,
 		&productVariationsJSON, // Scan JSON data into a []byte
+		&otherSalesJSON,        // Scan JSON data into a []byte
 	)
 	if err != nil {
 		return nil, err
@@ -577,7 +611,12 @@ func scanIntoSales(rows *sql.Rows) (*SaleResponse, error) {
 	// Unmarshal JSON data into slice
 	err = json.Unmarshal(productVariationsJSON, &sale.ProductVariations)
 	if err != nil {
-		return nil, fmt.Errorf("error unmarshaling product_variations JSON: %v", err)
+		return nil, fmt.Errorf("error unmarshaling productVariationsJSON JSON: %v", err)
+	}
+
+	err = json.Unmarshal(otherSalesJSON, &sale.OtherSales)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshaling otherSalesJSON JSON: %v", err)
 	}
 
 	return sale, nil
@@ -605,7 +644,39 @@ func (s *PostgresStore) GetSaleByID(id string) (*SaleResponse, error) {
 				'price', pv.price,
 				'image', p.image,
 				'name', p.name
-			)) AS product_variations
+			)) AS product_variations,
+			COALESCE((
+			 SELECT JSON_AGG(JSON_BUILD_OBJECT(
+					 'id', so.id,
+					 'customer_id', so.customer_id,
+					 'customer_name', so.customer_name,
+					 'customer_instagram_account', so.customer_instagram_account,
+					 'customer_phone', so.customer_phone,
+					 'customer_address', so.customer_address,
+					 'customer_city', so.customer_city,
+					 'customer_department', so.customer_department,
+					 'customer_comments', so.customer_comments,
+					 'customer_cc', so.customer_cc,
+					 'created_at', so.created_at,
+					 'updated_at', so.updated_at,
+					 'product_variations', (
+						 SELECT JSON_AGG(JSON_BUILD_OBJECT(
+								 'id', pv.id,
+								 'color', pv.color,
+								 'price', pv.price,
+								 'image', p.image,
+								 'name', p.name
+										 ))
+						 FROM sales s_inner
+								  JOIN sale_products sp_inner ON s_inner.id = sp_inner.sale_id
+								  JOIN product_variations pv ON sp_inner.product_variation_id = pv.id
+								  JOIN products p ON pv.product_id = p.id
+						 WHERE s_inner.id = so.id
+					 )
+							 ))
+			 FROM sales so
+			 WHERE so.customer_id = s.customer_id AND so.id != s.id
+		 ), '[]'::json) AS other_sales
 		FROM
 			sales s
 		JOIN
