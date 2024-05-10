@@ -28,8 +28,9 @@ func NewAPIServer(listenAddr string, store Storage, s3 *s3.Client) *APIServer {
 		Router:     router,
 	}
 
+	router.HandleFunc("/api/healthcheck", makeHTTPHandlerFunc(server.handleHealth))
 	router.HandleFunc("/api/login", makeHTTPHandlerFunc(server.handleLogin))
-	router.HandleFunc("/api/signup", makeHTTPHandlerFunc(server.HandleSignUp))
+	//router.HandleFunc("/api/signup", makeHTTPHandlerFunc(server.HandleSignUp))
 	router.HandleFunc("/api/users", withJWTAuth(makeHTTPHandlerFunc(server.handleUsers), server.store))
 	router.HandleFunc("/api/users/{id}", withJWTAuth(makeHTTPHandlerFunc(server.handleUsersWithID), server.store))
 	router.HandleFunc("/api/customers", withJWTAuth(makeHTTPHandlerFunc(server.handleCustomers), server.store))
@@ -63,6 +64,16 @@ func (server *APIServer) Run() {
 	err := http.ListenAndServe(server.listenAddr, handler)
 	if err != nil {
 		log.Fatal(err)
+	}
+}
+
+// handleHealth sends a 200 status code.
+func (server *APIServer) handleHealth(w http.ResponseWriter, r *http.Request) error {
+	switch r.Method {
+	case http.MethodGet:
+		return server.handleHealthCheck(w, r)
+	default:
+		return fmt.Errorf("unsupported method: %s", r.Method)
 	}
 }
 
