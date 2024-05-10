@@ -60,7 +60,6 @@ func (server *APIServer) Run() {
 		AllowCredentials: true,
 		AllowedHeaders:   []string{"Authorization", "Content-Type"},
 		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete},
-		Debug:            true,
 	})
 
 	handler := c.Handler(server.Router)
