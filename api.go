@@ -7,6 +7,8 @@ import (
 	"github.com/rs/cors"
 	"log"
 	"net/http"
+	"os"
+	"strings"
 )
 
 // APIServer represents an HTTP server for handling API requests.
@@ -50,8 +52,11 @@ func NewAPIServer(listenAddr string, store Storage, s3 *s3.Client) *APIServer {
 func (server *APIServer) Run() {
 	log.Println("JSON API server running on port: ", server.listenAddr)
 
+	allowedOrigins := os.Getenv("ALLOWED_ORIGINS")
+	origins := strings.Split(allowedOrigins, ",")
+
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"*"},
+		AllowedOrigins:   origins,
 		AllowCredentials: true,
 		AllowedHeaders:   []string{"Authorization", "Content-Type"},
 		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete},
