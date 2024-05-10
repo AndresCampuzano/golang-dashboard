@@ -443,6 +443,7 @@ func (s *PostgresStore) GetSales() ([]*SaleResponse, error) {
 								 'customer_department', so.customer_department,
 								 'customer_comments', so.customer_comments,
 								 'customer_cc', so.customer_cc,
+								 'customer_total_purchases', 0,
 								 'created_at', so.created_at,
 								 'updated_at', so.updated_at,
 								 'product_variations', (
@@ -657,6 +658,7 @@ func (s *PostgresStore) GetSaleByID(id string) (*SaleResponse, error) {
 					 'customer_department', so.customer_department,
 					 'customer_comments', so.customer_comments,
 					 'customer_cc', so.customer_cc,
+					 'customer_total_purchases', 0,
 					 'created_at', so.created_at,
 					 'updated_at', so.updated_at,
 					 'product_variations', (
