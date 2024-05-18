@@ -1,3 +1,172 @@
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Create the triggers for updated_at
+CREATE OR REPLACE FUNCTION update_timestamp()
+    RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER product_variations_updated_at_trigger
+    BEFORE UPDATE ON product_variations
+    FOR EACH ROW
+EXECUTE FUNCTION update_timestamp();
+
+
+
+CREATE OR REPLACE FUNCTION update_timestamp()
+    RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER sales_updated_at_trigger
+    BEFORE UPDATE ON sales
+    FOR EACH ROW
+EXECUTE FUNCTION update_timestamp();
+
+
+-- SALES_PRODUCTS DOES NOT HAVE A UPDATE_AT TRIGGER
+
+
+CREATE OR REPLACE FUNCTION update_timestamp()
+    RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER products_updated_at_trigger
+    BEFORE UPDATE ON products
+    FOR EACH ROW
+EXECUTE FUNCTION update_timestamp();
+
+
+CREATE OR REPLACE FUNCTION update_timestamp()
+    RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER customers_updated_at_trigger
+    BEFORE UPDATE ON customers
+    FOR EACH ROW
+EXECUTE FUNCTION update_timestamp();
+
+
+CREATE OR REPLACE FUNCTION update_timestamp()
+    RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER expenses_updated_at_trigger
+    BEFORE UPDATE ON expenses
+    FOR EACH ROW
+EXECUTE FUNCTION update_timestamp();
+
+-- USERS DOES NOT HAVE A UPDATE_AT TRIGGER
+
+
+-- Create the triggers for created_at
+CREATE OR REPLACE FUNCTION set_created_at()
+    RETURNS TRIGGER AS $$
+BEGIN
+    NEW.created_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER product_variations_created_at_trigger
+    BEFORE INSERT ON product_variations
+    FOR EACH ROW
+EXECUTE FUNCTION set_created_at();
+
+
+CREATE OR REPLACE FUNCTION set_created_at()
+    RETURNS TRIGGER AS $$
+BEGIN
+    NEW.created_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER sales_created_at_trigger
+    BEFORE INSERT ON sales
+    FOR EACH ROW
+EXECUTE FUNCTION set_created_at();
+
+
+
+CREATE OR REPLACE FUNCTION set_created_at()
+    RETURNS TRIGGER AS $$
+BEGIN
+    NEW.created_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER products_created_at_trigger
+    BEFORE INSERT ON products
+    FOR EACH ROW
+EXECUTE FUNCTION set_created_at();
+
+
+
+CREATE OR REPLACE FUNCTION set_created_at()
+    RETURNS TRIGGER AS $$
+BEGIN
+    NEW.created_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER customers_created_at_trigger
+    BEFORE INSERT ON customers
+    FOR EACH ROW
+EXECUTE FUNCTION set_created_at();
+
+
+
+CREATE OR REPLACE FUNCTION set_created_at()
+    RETURNS TRIGGER AS $$
+BEGIN
+    NEW.created_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER expenses_created_at_trigger
+    BEFORE INSERT ON expenses
+    FOR EACH ROW
+EXECUTE FUNCTION set_created_at();
+
+
+
+CREATE OR REPLACE FUNCTION set_created_at()
+    RETURNS TRIGGER AS $$
+BEGIN
+    NEW.created_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER users_created_at_trigger
+    BEFORE INSERT ON users
+    FOR EACH ROW
+EXECUTE FUNCTION set_created_at();
+
+
+
 -- Recreate primary keys
 ALTER TABLE product_variations ADD PRIMARY KEY (id);
 ALTER TABLE sales ADD PRIMARY KEY (id);
