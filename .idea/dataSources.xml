@@ -8,11 +8,11 @@
       <jdbc-url>jdbc:postgresql://localhost:5432/postgres-dashboard</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
-    <data-source source="LOCAL" name="dashboard_initial_db@postgres-dashboard-aws.cfgq2osqou64.us-east-2.rds.amazonaws.com" uuid="89a922e4-1ebd-440a-8d31-abcc437c03ef">
+    <data-source source="LOCAL" name="dashboard_initial_db@postgres-dashboard-aws.cpaiacyk4thy.us-east-1.rds.amazonaws.com" uuid="89a922e4-1ebd-440a-8d31-abcc437c03ef">
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>
-      <jdbc-url>jdbc:postgresql://postgres-dashboard-aws.cfgq2osqou64.us-east-2.rds.amazonaws.com:5432/dashboard_initial_db</jdbc-url>
+      <jdbc-url>jdbc:postgresql://postgres-dashboard-aws.cpaiacyk4thy.us-east-1.rds.amazonaws.com:5432/dashboard_initial_db</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
   </component>

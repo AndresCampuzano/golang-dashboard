@@ -208,6 +208,11 @@ var Colors = []Color{
 		Color:     "#a6a6a6",
 		TextColor: "#232323",
 	},
+	{
+		Label:     "Personalizado",
+		Color:     "#000000",
+		TextColor: "#ffffff",
+	},
 }
 
 // ColorFromLocalConstants retrieves the color from the constants based on the label
