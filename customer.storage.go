@@ -191,13 +191,6 @@ func (s *PostgresStore) GetCustomers() ([]*Customer, error) {
 		}
 	}(rows)
 
-	defer func(rows *sql.Rows) {
-		err := rows.Close()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}(rows)
-
 	var customers []*Customer
 	for rows.Next() {
 		customer, err := scanIntoCustomers(rows)
@@ -241,6 +234,14 @@ func (s *PostgresStore) UpdateCustomer(customer *Customer) error {
 	if err != nil {
 		return err
 	}
+
+	// close connection
+	defer func(db *sql.DB) {
+		err := db.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(s.db)
 
 	return nil
 }
