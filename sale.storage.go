@@ -707,6 +707,13 @@ func (s *PostgresStore) GetSaleByID(id string) (*SaleResponse, error) {
 		return nil, err
 	}
 
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(rows)
+
 	for rows.Next() {
 		return scanIntoSales(rows)
 	}

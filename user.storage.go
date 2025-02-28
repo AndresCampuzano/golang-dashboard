@@ -84,6 +84,13 @@ func (s *PostgresStore) GetUserByID(id string) (*User, error) {
 		return nil, err
 	}
 
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(rows)
+
 	for rows.Next() {
 		return scanIntoUser(rows)
 	}
@@ -96,6 +103,13 @@ func (s *PostgresStore) GetUserByEmail(email string) (*User, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(rows)
 
 	for rows.Next() {
 		return scanIntoUser(rows)

@@ -135,6 +135,13 @@ func (s *PostgresStore) GetProductByID(id string) (*Product, error) {
 		return nil, err
 	}
 
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(rows)
+
 	for rows.Next() {
 		return scanIntoProducts(rows)
 	}
