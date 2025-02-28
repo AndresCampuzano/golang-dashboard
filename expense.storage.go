@@ -136,6 +136,13 @@ func (s *PostgresStore) GetExpenseByID(id string) (*Expense, error) {
 		return nil, err
 	}
 
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(rows)
+
 	for rows.Next() {
 		return scanIntoExpenses(rows)
 	}
@@ -258,6 +265,13 @@ func (s *PostgresStore) UpdateExpense(expense *Expense) error {
 		return err
 	}
 
+	defer func(db *sql.DB) {
+		err := db.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(s.db)
+
 	return nil
 }
 
@@ -266,5 +280,13 @@ func (s *PostgresStore) DeleteExpense(id string) error {
 	if err != nil {
 		return err
 	}
+
+	defer func(db *sql.DB) {
+		err := db.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(s.db)
+
 	return nil
 }
