@@ -235,14 +235,6 @@ func (s *PostgresStore) UpdateCustomer(customer *Customer) error {
 		return err
 	}
 
-	// close connection
-	defer func(db *sql.DB) {
-		err := db.Close()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}(s.db)
-
 	return nil
 }
 

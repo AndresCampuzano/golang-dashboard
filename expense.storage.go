@@ -265,13 +265,6 @@ func (s *PostgresStore) UpdateExpense(expense *Expense) error {
 		return err
 	}
 
-	defer func(db *sql.DB) {
-		err := db.Close()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}(s.db)
-
 	return nil
 }
 
@@ -280,13 +273,6 @@ func (s *PostgresStore) DeleteExpense(id string) error {
 	if err != nil {
 		return err
 	}
-
-	defer func(db *sql.DB) {
-		err := db.Close()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}(s.db)
 
 	return nil
 }
