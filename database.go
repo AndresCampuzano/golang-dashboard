@@ -31,14 +31,6 @@ func NewPostgresStore() (*PostgresStore, error) {
 		return nil, err
 	}
 
-	// ensure db is closed
-	defer func(db *sql.DB) {
-		err := db.Close()
-		if err != nil {
-			fmt.Println("Error closing database connection:", err)
-		}
-	}(db)
-
 	return &PostgresStore{
 		db: db,
 	}, nil
