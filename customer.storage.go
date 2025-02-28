@@ -145,6 +145,13 @@ func (s *PostgresStore) GetCustomerByID(id string) (*Customer, error) {
 		return nil, err
 	}
 
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(rows)
+
 	for rows.Next() {
 		return scanIntoCustomers(rows)
 	}
@@ -176,6 +183,13 @@ func (s *PostgresStore) GetCustomers() ([]*Customer, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(rows)
 
 	defer func(rows *sql.Rows) {
 		err := rows.Close()
