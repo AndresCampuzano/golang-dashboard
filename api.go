@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/gorilla/mux"
-	"github.com/rs/cors"
 	"log"
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 )
 
 // APIServer represents an HTTP server for handling API requests.
@@ -37,10 +38,12 @@ func NewAPIServer(listenAddr string, store Storage, s3 *s3.Client) *APIServer {
 	router.HandleFunc("/api/users/{id}", withJWTAuth(makeHTTPHandlerFunc(server.handleUsersWithID), server.store))
 	router.HandleFunc("/api/customers", withJWTAuth(makeHTTPHandlerFunc(server.handleCustomers), server.store))
 	router.HandleFunc("/api/customers/{id}", withJWTAuth(makeHTTPHandlerFunc(server.handleCustomersWithID), server.store))
+	router.HandleFunc("/api/customers-3-months", withJWTAuth(makeHTTPHandlerFunc(server.handleCustomersLast3Months), server.store)) // added
 	router.HandleFunc("/api/products", withJWTAuth(makeHTTPHandlerFunc(server.handleProducts), server.store))
 	router.HandleFunc("/api/products/{id}", withJWTAuth(makeHTTPHandlerFunc(server.handleProductsWithID), server.store))
 	router.HandleFunc("/api/sales", withJWTAuth(makeHTTPHandlerFunc(server.handleSales), server.store))
 	router.HandleFunc("/api/sales/{id}", withJWTAuth(makeHTTPHandlerFunc(server.handleSalesWithID), server.store))
+	router.HandleFunc("/api/sales-3-months", withJWTAuth(makeHTTPHandlerFunc(server.handleSalesLast3Months), server.store)) // added
 	router.HandleFunc("/api/expenses", withJWTAuth(makeHTTPHandlerFunc(server.handleExpenses), server.store))
 	router.HandleFunc("/api/expenses/{id}", withJWTAuth(makeHTTPHandlerFunc(server.handleExpensesWithID), server.store))
 	router.HandleFunc("/api/earnings", withJWTAuth(makeHTTPHandlerFunc(server.handleEarnings), server.store))
@@ -133,6 +136,16 @@ func (server *APIServer) handleCustomers(w http.ResponseWriter, r *http.Request)
 	}
 }
 
+// handleCustomersLast3Months handles last 3 months customers
+func (server *APIServer) handleCustomersLast3Months(w http.ResponseWriter, r *http.Request) error {
+	switch r.Method {
+	case http.MethodGet:
+		return server.handleGetCustomersLast3Months(w, r)
+	default:
+		return fmt.Errorf("unsupported method: %s", r.Method)
+	}
+}
+
 // handleCustomersWithID handles customer logic.
 func (server *APIServer) handleCustomersWithID(w http.ResponseWriter, r *http.Request) error {
 	switch r.Method {
@@ -180,6 +193,16 @@ func (server *APIServer) handleSales(w http.ResponseWriter, r *http.Request) err
 		return server.handleGetSales(w, r)
 	case http.MethodPost:
 		return server.handleCreateSale(w, r)
+	default:
+		return fmt.Errorf("unsupported method: %s", r.Method)
+	}
+}
+
+// handleSalesLast3Months handles last 3 months sales
+func (server *APIServer) handleSalesLast3Months(w http.ResponseWriter, r *http.Request) error {
+	switch r.Method {
+	case http.MethodGet:
+		return server.handleGetSalesLast3Months(w, r)
 	default:
 		return fmt.Errorf("unsupported method: %s", r.Method)
 	}

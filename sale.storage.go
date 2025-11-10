@@ -510,6 +510,106 @@ func (s *PostgresStore) GetSales() ([]*SaleResponse, error) {
 	return sales, nil
 }
 
+func (s *PostgresStore) GetSalesLast3Months() ([]*SaleResponse, error) {
+	rows, err := s.db.Query(`
+		SELECT
+			 s.id,
+			 s.customer_id,
+			 s.customer_name,
+			 s.customer_instagram_account,
+			 s.customer_phone,
+			 s.customer_address,
+			 s.customer_city,
+			 s.customer_department,
+			 s.customer_comments,
+			 s.customer_cc,
+			 COUNT(*) OVER (PARTITION BY s.customer_id) AS customer_total_purchases,
+			 s.created_at,
+			 s.updated_at,
+			 JSON_AGG(JSON_BUILD_OBJECT(
+				 'id', pv.id,
+				 'color', pv.color,
+				 'price', pv.price,
+				 'image', p.image,
+				 'name', p.name
+			 )) AS product_variations,
+			 COALESCE((
+					 SELECT JSON_AGG(JSON_BUILD_OBJECT(
+						 'id', so.id,
+						 'customer_id', so.customer_id,
+						 'customer_name', so.customer_name,
+						 'customer_instagram_account', so.customer_instagram_account,
+						 'customer_phone', so.customer_phone,
+						 'customer_address', so.customer_address,
+						 'customer_city', so.customer_city,
+						 'customer_department', so.customer_department,
+						 'customer_comments', so.customer_comments,
+						 'customer_cc', so.customer_cc,
+						 'customer_total_purchases', 0,
+						 'created_at', so.created_at,
+						 'updated_at', so.updated_at,
+						 'product_variations', (
+							 SELECT JSON_AGG(JSON_BUILD_OBJECT(
+								 'id', pv.id,
+								 'color', pv.color,
+								 'price', pv.price,
+								 'image', p.image,
+								 'name', p.name
+							 ))
+							 FROM sales s_inner
+								  JOIN sale_products sp_inner ON s_inner.id = sp_inner.sale_id
+								  JOIN product_variations pv ON sp_inner.product_variation_id = pv.id
+								  JOIN products p ON pv.product_id = p.id
+							 WHERE s_inner.id = so.id
+						 )
+						 ))
+					 FROM sales so
+					 WHERE so.customer_id = s.customer_id AND so.id != s.id
+				 ), '[]'::json) AS other_sales
+		FROM
+			 sales s
+		JOIN
+			 sale_products sp ON s.id = sp.sale_id
+		JOIN
+			 product_variations pv ON sp.product_variation_id = pv.id
+		JOIN
+			 products p ON pv.product_id = p.id
+		WHERE
+			 s.created_at >= (NOW() - INTERVAL '3 months')
+		GROUP BY
+			 s.id,
+			 s.customer_id,
+			 s.customer_name,
+			 s.customer_instagram_account,
+			 s.customer_phone,
+			 s.customer_address,
+			 s.customer_city,
+			 s.customer_department,
+			 s.customer_comments,
+			 s.customer_cc,
+			 s.created_at,
+			 s.updated_at
+		ORDER BY s.created_at DESC;
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer func(rows *sql.Rows) {
+		if err := rows.Close(); err != nil {
+			log.Fatal(err)
+		}
+	}(rows)
+	var sales []*SaleResponse
+	for rows.Next() {
+		sale, err := scanIntoSales(rows)
+		if err != nil {
+			return nil, err
+		}
+		sales = append(sales, sale)
+	}
+	return sales, nil
+}
+
 func (s *PostgresStore) GetSalesByMonth() ([]*SaleResponseSortedByMonth, error) {
 	rows, err := s.db.Query(`
 		SELECT

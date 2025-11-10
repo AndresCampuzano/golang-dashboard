@@ -41,6 +41,14 @@ func (server *APIServer) handleGetSales(w http.ResponseWriter, _ *http.Request) 
 	return WriteJSON(w, http.StatusOK, sales)
 }
 
+func (server *APIServer) handleGetSalesLast3Months(w http.ResponseWriter, _ *http.Request) error {
+	sales, err := server.store.GetSalesLast3Months()
+	if err != nil {
+		return err
+	}
+	return WriteJSON(w, http.StatusOK, sales)
+}
+
 func (server *APIServer) handleGetSaleByID(w http.ResponseWriter, r *http.Request) error {
 	id, err := getID(r)
 	if err != nil {

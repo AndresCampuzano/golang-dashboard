@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+
 	_ "github.com/lib/pq"
 )
 
@@ -15,6 +16,7 @@ type Storage interface {
 	CreateCustomer(customer *Customer) error
 	GetCustomerByID(id string) (*Customer, error)
 	GetCustomers() ([]*Customer, error)
+	GetCustomersLast3Months() ([]*Customer, error) // added
 	UpdateCustomer(customer *Customer) error
 	DeleteCustomer(id string) error
 	// Products
@@ -27,6 +29,7 @@ type Storage interface {
 	CreateSale(sale *SaleWithProducts) error
 	GetSaleByID(id string) (*SaleResponse, error)
 	GetSales() ([]*SaleResponse, error)
+	GetSalesLast3Months() ([]*SaleResponse, error)          // added
 	GetSalesByMonth() ([]*SaleResponseSortedByMonth, error) // Not in use yet
 	// Expenses
 	CreateExpense(expense *Expense) error

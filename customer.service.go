@@ -47,6 +47,14 @@ func (server *APIServer) handleGetCustomers(w http.ResponseWriter, _ *http.Reque
 	return WriteJSON(w, http.StatusOK, customers)
 }
 
+func (server *APIServer) handleGetCustomersLast3Months(w http.ResponseWriter, _ *http.Request) error {
+	customers, err := server.store.GetCustomersLast3Months()
+	if err != nil {
+		return err
+	}
+	return WriteJSON(w, http.StatusOK, customers)
+}
+
 func (server *APIServer) handleGetCustomerByID(w http.ResponseWriter, r *http.Request) error {
 	id, err := getID(r)
 	if err != nil {

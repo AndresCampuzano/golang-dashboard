@@ -204,6 +204,29 @@ func (s *PostgresStore) GetCustomers() ([]*Customer, error) {
 	return customers, nil
 }
 
+func (s *PostgresStore) GetCustomersLast3Months() ([]*Customer, error) {
+	rows, err := s.db.Query(`
+		SELECT * FROM customers WHERE created_at >= (NOW() - INTERVAL '3 months') ORDER BY created_at DESC;
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer func(rows *sql.Rows) {
+		if err := rows.Close(); err != nil {
+			log.Fatal(err)
+		}
+	}(rows)
+	var customers []*Customer
+	for rows.Next() {
+		customer, err := scanIntoCustomers(rows)
+		if err != nil {
+			return nil, err
+		}
+		customers = append(customers, customer)
+	}
+	return customers, nil
+}
+
 func (s *PostgresStore) UpdateCustomer(customer *Customer) error {
 	query := `
 		UPDATE customers
