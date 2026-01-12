@@ -3,6 +3,10 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 func (server *APIServer) handleCreateProduct(w http.ResponseWriter, r *http.Request) error {
@@ -27,6 +31,21 @@ func (server *APIServer) handleCreateProduct(w http.ResponseWriter, r *http.Requ
 	}
 
 	product.Image = imageUrl
+
+	// Set new optional fields
+	product.Description = req.Description
+	if req.IsCatalogReady != nil {
+		product.IsCatalogReady = *req.IsCatalogReady
+	}
+
+	// Process catalog variants if provided
+	if len(req.CatalogVariants) > 0 {
+		processedVariants, err := server.processCatalogVariants(req.CatalogVariants)
+		if err != nil {
+			return err
+		}
+		product.CatalogVariants = processedVariants
+	}
 
 	if err := server.store.CreateProduct(product); err != nil {
 		return err
@@ -97,6 +116,15 @@ func (server *APIServer) handleUpdateProduct(w http.ResponseWriter, r *http.Requ
 
 	}
 
+	// Process catalog variants if provided
+	if len(product.CatalogVariants) > 0 {
+		processedVariants, err := server.processCatalogVariants(product.CatalogVariants)
+		if err != nil {
+			return err
+		}
+		product.CatalogVariants = processedVariants
+	}
+
 	product.ID = id
 
 	if err := server.store.UpdateProduct(&product); err != nil {
@@ -133,4 +161,44 @@ func (server *APIServer) handleDeleteProduct(w http.ResponseWriter, r *http.Requ
 	}
 
 	return WriteJSON(w, http.StatusOK, map[string]string{"deleted": id})
+}
+
+func (server *APIServer) processCatalogVariants(variants []CatalogVariant) ([]CatalogVariant, error) {
+	now := time.Now()
+	for i := range variants {
+		// Generate UUID if empty
+		if variants[i].ID == "" {
+			variants[i].ID = uuid.New().String()
+		}
+		// Set timestamps
+		if variants[i].CreatedAt.IsZero() {
+			variants[i].CreatedAt = now
+		}
+		variants[i].UpdatedAt = now
+
+		// Upload image to S3 if base64
+		if strings.HasPrefix(variants[i].Image, "data:image") {
+			url, err := BucketBasics.UploadFile(BucketBasics{S3Client: server.s3Client}, variants[i].Image)
+			if err != nil {
+				return nil, err
+			}
+			variants[i].Image = url
+		}
+	}
+	return variants, nil
+}
+
+func (server *APIServer) handleGetPublicProducts(w http.ResponseWriter, _ *http.Request) error {
+	products, err := server.store.GetCatalogProducts()
+	if err != nil {
+		return err
+	}
+	return WriteJSON(w, http.StatusOK, products)
+}
+
+func (server *APIServer) handlePublicProducts(w http.ResponseWriter, r *http.Request) error {
+	if r.Method == http.MethodGet {
+		return server.handleGetPublicProducts(w, r)
+	}
+	return WriteJSON(w, http.StatusMethodNotAllowed, apiError{Error: "unsupported method: " + r.Method})
 }

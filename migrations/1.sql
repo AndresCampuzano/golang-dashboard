@@ -250,3 +250,13 @@ ALTER TABLE customers ALTER COLUMN id SET DEFAULT uuid_generate_v4();
 ALTER TABLE expenses ALTER COLUMN id SET DEFAULT uuid_generate_v4();
 ALTER TABLE users ALTER COLUMN id SET DEFAULT uuid_generate_v4();
 
+
+-- Add new columns for catalog functionality
+ALTER TABLE products ADD COLUMN IF NOT EXISTS description TEXT;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS is_catalog_ready BOOLEAN DEFAULT FALSE;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS catalog_variants JSONB;
+
+-- Set default value for is_catalog_ready on existing rows
+UPDATE products SET is_catalog_ready = FALSE WHERE is_catalog_ready IS NULL;
+
+

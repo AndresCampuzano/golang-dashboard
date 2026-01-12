@@ -23,6 +23,7 @@ type Storage interface {
 	CreateProduct(product *Product) error
 	GetProductByID(id string) (*Product, error)
 	GetProducts() ([]*Product, error)
+	GetCatalogProducts() ([]*Product, error)
 	UpdateProduct(product *Product) error
 	DeleteProduct(id string) error
 	// Sales
