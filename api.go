@@ -34,6 +34,7 @@ func NewAPIServer(listenAddr string, store Storage, s3 *s3.Client) *APIServer {
 	router.HandleFunc("/api/healthcheck", makeHTTPHandlerFunc(server.handleHealth))
 	router.HandleFunc("/api/login", makeHTTPHandlerFunc(server.handleLogin))
 	router.HandleFunc("/api/public/products", makeHTTPHandlerFunc(server.handlePublicProducts))
+	router.HandleFunc("/api/public/products/{id}", makeHTTPHandlerFunc(server.handleGetProductByID))
 	//router.HandleFunc("/api/signup", makeHTTPHandlerFunc(server.HandleSignUp))
 	router.HandleFunc("/api/users", withJWTAuth(makeHTTPHandlerFunc(server.handleUsers), server.store))
 	router.HandleFunc("/api/users/{id}", withJWTAuth(makeHTTPHandlerFunc(server.handleUsersWithID), server.store))
